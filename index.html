@@ -13,20 +13,50 @@
     <canvas id="spooky-canvas"></canvas>
     <div class="fog-layer"></div>
 
+    <!-- ONBOARDING MODAL: Learner Name Entry & Swear Dark Oath -->
+    <div id="onboarding-modal" class="onboarding-overlay" style="display: none;">
+        <div class="onboarding-card">
+            <img src="kapil_vampire.jpg" alt="Kapil - Founder" class="onboarding-portrait">
+            <h2>ENTER THE WITCHING TRIAL</h2>
+            <div class="onboarding-sub">SARLAYASH PRODUCTIONS • HALLOWEEN POWERED BY KAPIL</div>
+            <p>
+                Declare thy mortal identity before Kapil and step into the catacombs of DSA, Aptitude, Soft Skills, and Gamified Horrors.
+            </p>
+            <div class="onboarding-input-group">
+                <input type="text" id="onboarding-name-input" class="onboarding-input" placeholder="Enter Your Full Name..." maxlength="40">
+                <button id="onboarding-begin-btn" class="spooky-btn-primary" style="padding: 16px; font-size: 1.05rem;">
+                    🧛‍♂️ Swear The Dark Oath & Begin
+                </button>
+            </div>
+            <span style="font-size: 0.75rem; color: #94a3b8;">
+                Your name will be inscribed upon all 5 Badges and your Official Verified Certificate.
+            </span>
+        </div>
+    </div>
+
     <div class="app-container">
 
-        <!-- Spooky Brand Header -->
+        <!-- Spooky Brand Header with Learner Controls -->
         <header class="spooky-header">
             <div class="brand-wrapper">
-                <div class="pumpkin-mascot">🎃</div>
+                <img src="kapil_vampire.jpg" alt="Kapil Vampire" class="founder-mini-avatar">
                 <div class="brand-text">
                     <h1>HALLOWEEN POWERED BY KAPIL</h1>
                     <div class="brand-subtitle">SARLAYASH PRODUCTIONS • OCCULT LEARNING ODYSSEY</div>
                 </div>
             </div>
             <div class="header-controls">
+                <div class="user-status-pill" id="user-status-display">
+                    <span>🕯️</span> Learner: <strong id="current-user-name" style="color: #fff; margin-left: 4px;">Apprentice</strong>
+                </div>
                 <button id="sound-toggle-btn" class="spooky-btn-pill sound-btn active">
-                    🔊 Audio: Spooky On
+                    🔊 Spooky Audio
+                </button>
+                <button id="switch-learner-btn" class="spooky-btn-pill" title="Change or log out current learner">
+                    👤 Log Off / Switch
+                </button>
+                <button id="reset-game-btn" class="spooky-btn-pill danger" title="Reset all level progression & badges">
+                    🔄 Reset Progress
                 </button>
             </div>
         </header>
@@ -46,13 +76,33 @@
 
         <!-- VIEW 1: QUEST MAP & LEVEL PROGRESSION -->
         <section id="view-quest-map">
+            
+            <!-- FOUNDER NOTE IN SPOOKY STYLE -->
+            <div class="founder-card">
+                <div class="founder-img-wrapper">
+                    <img src="kapil_vampire.jpg" alt="Kapil - Founder" class="founder-portrait">
+                    <div class="founder-portrait-tag">ARCH-NECROMANCER</div>
+                </div>
+                <div class="founder-content">
+                    <span class="founder-header-pill">Occult Proclamation</span>
+                    <h3>A Grim Welcome From Kapil</h3>
+                    <div class="founder-note-quote">
+                        "Mortal seeker, you stand at the precipice of the Netherworld. Many tremble before the cold crypts of complex Data Structures, freeze in terror at the labyrinthine twists of Aptitude, or crumble under toxic pressure. But true mastery is forged when logic meets emotional intelligence—the courage to stay calm, listen deeply, and lead through the storm. Complete the 5 trials, survive the 300-MCQ 1-Hour Witching Trial, and claim your immortal Certificate of Occult Mastery. I will be watching your every decision from the shadows..."
+                    </div>
+                    <div class="founder-sign-row">
+                        <div>
+                            <div class="founder-author">— KAPIL</div>
+                            <div class="founder-title-sub">Architect & Founder, Sarlayash Productions</div>
+                        </div>
+                        <div style="font-size: 0.78rem; color: #f59e0b; font-family: var(--title-font);">
+                            ★ SARLAYASH OFFICIAL SEAL GUARANTEED ★
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Hero Lore Banner -->
             <div class="hero-banner">
-                <span class="hero-tag">Sarlayash Productions Flagship Game</span>
-                <h2>Conquer The 5 Netherworld Realms</h2>
-                <p>
-                    Welcome, brave learner, to <strong>Halloween Powered By Kapil</strong>. Journey through ancient crypts where algorithms awaken, unravel aptitude labyrinths, tame corporate demons through emotional intelligence and soft skills, and withstand the supreme <strong>1-Hour 300-MCQ Final Assessment</strong> to claim your enchanted certificate of mastery.
-                </p>
                 <div class="hero-stats">
                     <div class="hero-stat-card">
                         <span class="hero-stat-num" id="stat-unlocked-count">1 / 5</span>
@@ -75,7 +125,7 @@
 
             <!-- Levels Grid (5 Levels) -->
             <div class="levels-grid" id="levels-grid">
-                <!-- Dynamically populated by game.js -->
+                <!-- Dynamically populated by game.js with Kapil's portrait badge medallions -->
             </div>
         </section>
 
@@ -166,9 +216,9 @@
         <section id="view-badges-vault" style="display: none;">
             <div class="badges-vault">
                 <h2>🏆 Sacred Badges of the Netherworld</h2>
-                <p>Complete each level to earn its corresponding occult badge. Unlock all 5 badges to receive the Sarlayash Productions Master Seal on your certificate.</p>
+                <p>Complete each level to earn its corresponding occult badge stamped with Kapil's Occult Medallion. Unlock all 5 badges to receive the Sarlayash Productions Master Seal on your certificate.</p>
                 <div class="badges-grid" id="badges-grid">
-                    <!-- Injected dynamically by game.js -->
+                    <!-- Injected dynamically by game.js with Kapil's portrait -->
                 </div>
             </div>
         </section>
@@ -180,7 +230,7 @@
                     📜 The Sanctum of Certification
                 </h2>
                 <p style="color: #94a3b8; margin-bottom: 24px; line-height: 1.6;">
-                    Verified by <strong>Sarlayash Productions</strong> and <strong>Halloween Powered By Kapil</strong>. Enter your name below to generate your crisp high-definition certificate with adaptive typography to guarantee <strong>zero text overlapping or spillover</strong>.
+                    Verified by <strong>Sarlayash Productions</strong> and <strong>Halloween Powered By Kapil</strong>, featuring the Founder's signature portrait and badged heraldry. Edit or update your name below to generate your crisp high-definition certificate with adaptive typography to guarantee <strong>zero text overlapping or spillover</strong>.
                 </p>
 
                 <div class="cert-input-bar">

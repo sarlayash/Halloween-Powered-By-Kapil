@@ -1,5 +1,5 @@
 /* Halloween Powered By Kapil - Sarlayash Productions */
-/* Horror / Spooky Dark Atmospheric Theme */
+/* Horror / Spooky Dark Atmospheric Theme with Founder Integration */
 
 @import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@500;700;900&family=Creepster&family=Inter:wght@300;400;600;700&display=swap');
 
@@ -100,12 +100,14 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 16px 24px;
-    background: rgba(14, 6, 24, 0.85);
+    background: rgba(14, 6, 24, 0.88);
     border: 1px solid rgba(249, 115, 22, 0.4);
     border-radius: 16px;
     backdrop-filter: blur(12px);
     box-shadow: 0 0 25px rgba(220, 38, 38, 0.25), inset 0 0 15px rgba(249, 115, 22, 0.1);
-    margin-bottom: 28px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 16px;
 }
 
 .brand-wrapper {
@@ -114,15 +116,13 @@ body {
     gap: 14px;
 }
 
-.pumpkin-mascot {
-    font-size: 2.4rem;
-    animation: pumpkinFlicker 3s infinite alternate;
-}
-
-@keyframes pumpkinFlicker {
-    0% { filter: drop-shadow(0 0 4px #f97316); transform: scale(1); }
-    50% { filter: drop-shadow(0 0 15px #ff4500); transform: scale(1.05) rotate(-3deg); }
-    100% { filter: drop-shadow(0 0 8px #f97316); transform: scale(1) rotate(2deg); }
+.founder-mini-avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.6);
 }
 
 .brand-text h1 {
@@ -145,7 +145,21 @@ body {
 .header-controls {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.user-status-pill {
+    background: rgba(30, 15, 50, 0.8);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-radius: 30px;
+    padding: 6px 14px;
+    font-size: 0.85rem;
+    color: #fde68a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--title-font);
 }
 
 .spooky-btn-pill {
@@ -154,12 +168,12 @@ body {
     color: #e2e8f0;
     padding: 8px 16px;
     border-radius: 30px;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     cursor: pointer;
     font-family: var(--title-font);
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     transition: all 0.25s ease;
 }
 
@@ -168,6 +182,16 @@ body {
     box-shadow: 0 0 14px var(--pumpkin-glow);
     color: #fff;
     transform: translateY(-2px);
+}
+
+.spooky-btn-pill.danger {
+    border-color: rgba(220, 38, 38, 0.5);
+}
+
+.spooky-btn-pill.danger:hover {
+    border-color: var(--blood-red);
+    box-shadow: 0 0 12px rgba(220, 38, 38, 0.6);
+    background: rgba(220, 38, 38, 0.2);
 }
 
 .sound-btn.active {
@@ -210,61 +234,141 @@ body {
     box-shadow: 0 0 15px rgba(249, 115, 22, 0.3);
 }
 
-/* Hero Section */
-.hero-banner {
-    background: linear-gradient(145deg, rgba(28, 10, 48, 0.8), rgba(12, 4, 22, 0.95));
-    border: 1px solid rgba(220, 38, 38, 0.4);
+/* FOUNDER'S SPOOKY NOTE SECTION */
+.founder-card {
+    background: linear-gradient(145deg, rgba(30, 10, 45, 0.9), rgba(12, 4, 22, 0.95));
+    border: 2px solid #b91c1c;
     border-radius: 20px;
-    padding: 36px 32px;
-    margin-bottom: 32px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), inset 0 0 30px rgba(147, 51, 234, 0.2);
+    padding: 28px 32px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8), inset 0 0 25px rgba(220, 38, 38, 0.2);
+    display: flex;
+    gap: 30px;
+    align-items: center;
     position: relative;
     overflow: hidden;
 }
 
-.hero-banner::after {
-    content: "🎃";
+.founder-card::before {
+    content: '';
     position: absolute;
-    right: 20px;
-    bottom: -15px;
-    font-size: 130px;
-    opacity: 0.12;
-    pointer-events: none;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: linear-gradient(180deg, var(--blood-red), var(--gold));
 }
 
-.hero-tag {
+.founder-img-wrapper {
+    flex-shrink: 0;
+    position: relative;
+}
+
+.founder-portrait {
+    width: 170px;
+    height: 230px;
+    border-radius: 16px;
+    object-fit: cover;
+    border: 3px solid var(--gold);
+    box-shadow: 0 0 25px rgba(249, 115, 22, 0.5), 0 0 10px rgba(220, 38, 38, 0.8);
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.founder-portrait:hover {
+    transform: scale(1.03) rotate(-1deg);
+}
+
+.founder-portrait-tag {
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #881337;
+    color: #fef08a;
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    padding: 3px 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: var(--title-font);
+    white-space: nowrap;
+    letter-spacing: 1px;
+}
+
+.founder-content {
+    flex: 1;
+}
+
+.founder-header-pill {
     display: inline-block;
     padding: 4px 12px;
     border-radius: 20px;
-    background: rgba(220, 38, 38, 0.3);
+    background: rgba(220, 38, 38, 0.25);
     border: 1px solid var(--blood-red);
     color: #fca5a5;
     font-size: 0.75rem;
     font-weight: 700;
     letter-spacing: 2px;
     text-transform: uppercase;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
 }
 
-.hero-banner h2 {
+.founder-content h3 {
     font-family: var(--title-font);
-    font-size: 2.2rem;
+    font-size: 1.6rem;
     color: #ffffff;
-    margin-bottom: 12px;
-    text-shadow: 0 0 12px rgba(249, 115, 22, 0.5);
+    margin-bottom: 10px;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
 }
 
-.hero-banner p {
-    color: #cbd5e1;
-    font-size: 1.05rem;
-    line-height: 1.6;
-    max-width: 820px;
-    margin-bottom: 22px;
+.founder-note-quote {
+    color: #e2e8f0;
+    font-size: 1rem;
+    line-height: 1.65;
+    font-style: italic;
+    margin-bottom: 14px;
+    border-left: 3px solid var(--pumpkin-orange);
+    padding-left: 16px;
+}
+
+.founder-sign-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+}
+
+.founder-author {
+    font-family: var(--title-font);
+    font-size: 1.1rem;
+    color: var(--gold);
+    font-weight: 700;
+}
+
+.founder-title-sub {
+    font-size: 0.82rem;
+    color: #94a3b8;
+}
+
+/* Hero Section */
+.hero-banner {
+    background: linear-gradient(145deg, rgba(28, 10, 48, 0.8), rgba(12, 4, 22, 0.95));
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    border-radius: 20px;
+    padding: 32px 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7), inset 0 0 30px rgba(147, 51, 234, 0.2);
+    position: relative;
+    overflow: hidden;
 }
 
 .hero-stats {
     display: flex;
-    gap: 24px;
+    gap: 20px;
     flex-wrap: wrap;
 }
 
@@ -279,13 +383,13 @@ body {
 
 .hero-stat-num {
     font-family: var(--title-font);
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     color: var(--gold);
     font-weight: 900;
 }
 
 .hero-stat-label {
-    font-size: 0.75rem;
+    font-size: 0.72rem;
     color: #94a3b8;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -350,16 +454,34 @@ body {
     margin-bottom: 14px;
 }
 
+/* Badge Medallion with Kapil's Portrait */
 .level-badge-preview {
-    font-size: 2.2rem;
-    background: rgba(0, 0, 0, 0.4);
-    width: 54px;
-    height: 54px;
+    width: 58px;
+    height: 58px;
     border-radius: 50%;
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid rgba(245, 158, 11, 0.3);
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+    overflow: hidden;
+    background: #1e1136;
+}
+
+.level-badge-preview img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.35;
+}
+
+.level-badge-preview .badge-icon-overlay {
+    position: relative;
+    z-index: 2;
+    font-size: 1.6rem;
+    text-shadow: 0 0 8px #000;
 }
 
 .level-num-pill {
@@ -673,7 +795,7 @@ body {
     color: #f3e8ff;
 }
 
-/* Badges Vault Section */
+/* Badges Vault Section with Kapil's Medallion */
 .badges-vault {
     background: var(--bg-card);
     border: 1px solid rgba(245, 158, 11, 0.3);
@@ -697,7 +819,7 @@ body {
 
 .badges-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
     gap: 20px;
 }
 
@@ -705,7 +827,7 @@ body {
     background: rgba(12, 6, 22, 0.85);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 16px;
-    padding: 24px;
+    padding: 24px 20px;
     text-align: center;
     transition: all 0.3s ease;
     display: flex;
@@ -723,9 +845,32 @@ body {
     filter: grayscale(1);
 }
 
-.badge-icon-huge {
-    font-size: 3.5rem;
-    margin-bottom: 12px;
+.badge-medallion-large {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    position: relative;
+    border: 3px solid var(--gold);
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+    overflow: hidden;
+    margin-bottom: 14px;
+    background: #1e1136;
+}
+
+.badge-medallion-large img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.45;
+}
+
+.badge-medallion-large .badge-icon-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 2.4rem;
+    text-shadow: 0 0 10px #000;
 }
 
 .badge-title {
@@ -794,6 +939,93 @@ body {
     display: block;
 }
 
+/* ONBOARDING MODAL OVERLAY */
+.onboarding-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 2, 10, 0.92);
+    backdrop-filter: blur(12px);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.onboarding-card {
+    background: linear-gradient(145deg, #180929, #090312);
+    border: 2px solid var(--pumpkin-orange);
+    border-radius: 24px;
+    max-width: 540px;
+    width: 100%;
+    padding: 36px 32px;
+    text-align: center;
+    box-shadow: 0 0 40px rgba(249, 115, 22, 0.4), 0 0 20px rgba(220, 38, 38, 0.5);
+    position: relative;
+    animation: fadeIn 0.4s ease;
+}
+
+.onboarding-portrait {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--gold);
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+    margin: 0 auto 16px;
+    display: block;
+}
+
+.onboarding-card h2 {
+    font-family: var(--horror-font);
+    font-size: 2.2rem;
+    color: var(--pumpkin-orange);
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+}
+
+.onboarding-sub {
+    font-family: var(--title-font);
+    font-size: 0.82rem;
+    color: var(--gold);
+    margin-bottom: 18px;
+    letter-spacing: 2px;
+}
+
+.onboarding-card p {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 24px;
+}
+
+.onboarding-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.onboarding-input {
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(249, 115, 22, 0.5);
+    border-radius: 12px;
+    padding: 14px 18px;
+    font-size: 1.05rem;
+    color: #fff;
+    text-align: center;
+    outline: none;
+    font-family: var(--body-font);
+}
+
+.onboarding-input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
+}
+
 /* Footer */
 .spooky-footer {
     text-align: center;
@@ -817,14 +1049,21 @@ body {
     }
     .spooky-header {
         flex-direction: column;
-        gap: 14px;
         align-items: flex-start;
     }
-    .hero-banner h2 {
-        font-size: 1.6rem;
-    }
-    .cert-input-bar {
+    .founder-card {
         flex-direction: column;
-        align-items: stretch;
+        text-align: center;
+        padding: 24px 20px;
+    }
+    .founder-note-quote {
+        border-left: none;
+        border-top: 2px solid var(--pumpkin-orange);
+        padding-left: 0;
+        padding-top: 12px;
+    }
+    .founder-portrait {
+        width: 140px;
+        height: 190px;
     }
 }

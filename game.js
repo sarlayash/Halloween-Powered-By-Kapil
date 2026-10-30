@@ -1,5 +1,6 @@
 // Halloween Powered By Kapil - Main Game Logic Engine
 // Sarlayash Productions
+// Deep Tested & Hardened with Founder Integration, Onboarding, Badges, and Reset
 
 class HalloweenGameController {
     constructor() {
@@ -8,7 +9,7 @@ class HalloweenGameController {
             unlockedLevels: [1],
             completedLevels: [],
             badges: [],
-            studentName: "Kapil's Halloween Apprentice",
+            studentName: "",
             finalAssessment: {
                 active: false,
                 questions: [],
@@ -34,6 +35,7 @@ class HalloweenGameController {
         this.initStorage();
         this.initCanvasAnimation();
         this.bindEvents();
+        this.checkOnboarding();
         this.renderLevelsGrid();
         this.renderBadgesVault();
         this.updateCertificatePreview();
@@ -44,10 +46,18 @@ class HalloweenGameController {
             const saved = localStorage.getItem('halloween_kapil_game_state');
             if (saved) {
                 const parsed = JSON.parse(saved);
-                if (parsed.unlockedLevels) this.state.unlockedLevels = parsed.unlockedLevels;
-                if (parsed.completedLevels) this.state.completedLevels = parsed.completedLevels;
-                if (parsed.badges) this.state.badges = parsed.badges;
-                if (parsed.studentName) this.state.studentName = parsed.studentName;
+                if (Array.isArray(parsed.unlockedLevels) && parsed.unlockedLevels.length > 0) {
+                    this.state.unlockedLevels = parsed.unlockedLevels;
+                }
+                if (Array.isArray(parsed.completedLevels)) {
+                    this.state.completedLevels = parsed.completedLevels;
+                }
+                if (Array.isArray(parsed.badges)) {
+                    this.state.badges = parsed.badges;
+                }
+                if (parsed.studentName && typeof parsed.studentName === 'string') {
+                    this.state.studentName = parsed.studentName.trim();
+                }
             }
         } catch (e) {
             console.warn("Could not load saved state", e);
@@ -64,6 +74,20 @@ class HalloweenGameController {
             }));
         } catch (e) {
             console.warn("Could not persist state", e);
+        }
+    }
+
+    checkOnboarding() {
+        const modal = document.getElementById('onboarding-modal');
+        const userDisplay = document.getElementById('current-user-name');
+        const certInput = document.getElementById('cert-student-name');
+
+        if (!this.state.studentName || this.state.studentName.trim() === '') {
+            if (modal) modal.style.display = 'flex';
+        } else {
+            if (modal) modal.style.display = 'none';
+            if (userDisplay) userDisplay.textContent = this.state.studentName;
+            if (certInput) certInput.value = this.state.studentName;
         }
     }
 
@@ -124,6 +148,7 @@ class HalloweenGameController {
             // Draw and update Bats
             bats.forEach(b => {
                 b.x += b.speedX;
+                b.speedY = Math.sin(b.x * 0.02) * 0.8;
                 b.y += b.speedY;
                 b.wingPhase += 0.2;
 
@@ -160,13 +185,73 @@ class HalloweenGameController {
     }
 
     bindEvents() {
+        // Onboarding Begin Button
+        const onboardingBtn = document.getElementById('onboarding-begin-btn');
+        const onboardingInput = document.getElementById('onboarding-name-input');
+        if (onboardingBtn && onboardingInput) {
+            onboardingBtn.addEventListener('click', () => {
+                const name = onboardingInput.value.trim();
+                if (!name) {
+                    alert("⚠️ Enter your mortal name before entering the trial!");
+                    onboardingInput.focus();
+                    return;
+                }
+                this.state.studentName = name;
+                this.saveState();
+                this.checkOnboarding();
+                this.updateCertificatePreview();
+                window.spookyAudio.init();
+                window.spookyAudio.playTollBell();
+            });
+
+            onboardingInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    onboardingBtn.click();
+                }
+            });
+        }
+
+        // Log Off / Switch Learner Button
+        const switchLearnerBtn = document.getElementById('switch-learner-btn');
+        if (switchLearnerBtn) {
+            switchLearnerBtn.addEventListener('click', () => {
+                const modal = document.getElementById('onboarding-modal');
+                if (modal) {
+                    if (onboardingInput) onboardingInput.value = this.state.studentName;
+                    modal.style.display = 'flex';
+                }
+            });
+        }
+
+        // Reset Progress Button
+        const resetBtn = document.getElementById('reset-game-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                const conf = confirm("⚠️ RESET ALL OCCULT PROGRESS?\n\nThis will re-lock all completed realms, wipe all claimed badges, and clear scores.\nAre you sure you want to start fresh?");
+                if (conf) {
+                    this.state.unlockedLevels = [1];
+                    this.state.completedLevels = [];
+                    this.state.badges = [];
+                    this.state.finalAssessment.score = 0;
+                    this.state.finalAssessment.userAnswers = {};
+                    this.state.finalAssessment.markedForReview.clear();
+                    this.saveState();
+                    this.renderLevelsGrid();
+                    this.renderBadgesVault();
+                    this.updateCertificatePreview();
+                    window.spookyAudio.playJumpScare();
+                    alert("🔄 All realm progress has been reset. Level 1 awaits!");
+                }
+            });
+        }
+
         // Sound toggle
         const soundBtn = document.getElementById('sound-toggle-btn');
         if (soundBtn) {
             soundBtn.addEventListener('click', () => {
                 window.spookyAudio.init();
                 const muted = window.spookyAudio.toggleMute();
-                soundBtn.innerHTML = muted ? "🔇 Audio: Muted" : "🔊 Audio: Spooky On";
+                soundBtn.innerHTML = muted ? "🔇 Audio: Muted" : "🔊 Spooky Audio";
                 soundBtn.classList.toggle('active', !muted);
                 if (!muted) {
                     window.spookyAudio.startAmbientDrone();
@@ -194,9 +279,11 @@ class HalloweenGameController {
         // Certificate Name Input Listener
         const certNameInput = document.getElementById('cert-student-name');
         if (certNameInput) {
-            certNameInput.value = this.state.studentName;
+            certNameInput.value = this.state.studentName || "Apprentice";
             certNameInput.addEventListener('input', (e) => {
                 this.state.studentName = e.target.value;
+                const userDisplay = document.getElementById('current-user-name');
+                if (userDisplay) userDisplay.textContent = this.state.studentName || "Apprentice";
                 this.saveState();
                 this.updateCertificatePreview();
             });
@@ -207,7 +294,7 @@ class HalloweenGameController {
         if (downloadBtn) {
             downloadBtn.addEventListener('click', () => {
                 const canvas = document.getElementById('certificate-canvas');
-                window.halloweenCertificateEngine.downloadCertificatePNG(canvas, this.state.studentName);
+                window.halloweenCertificateEngine.downloadCertificatePNG(canvas, this.state.studentName || "Champion");
                 window.spookyAudio.playLevelComplete();
             });
         }
@@ -238,7 +325,7 @@ class HalloweenGameController {
     }
 
     /* -------------------------------------------------------------
-       Quest Map & Levels Rendering
+       Quest Map & Levels Rendering (With Kapil's Portrait Medallions)
     -------------------------------------------------------------- */
     renderLevelsGrid() {
         const grid = document.getElementById('levels-grid');
@@ -254,7 +341,10 @@ class HalloweenGameController {
             card.innerHTML = `
                 <div>
                     <div class="level-header">
-                        <div class="level-badge-preview">${level.badge.icon}</div>
+                        <div class="level-badge-preview">
+                            <img src="kapil_vampire.jpg" alt="Kapil Medallion">
+                            <span class="badge-icon-overlay">${level.badge.icon}</span>
+                        </div>
                         <span class="level-num-pill">LEVEL 0${level.id}</span>
                     </div>
                     <h3>${level.title}</h3>
@@ -278,8 +368,10 @@ class HalloweenGameController {
         });
 
         // Update overall stats in Hero
-        document.getElementById('stat-unlocked-count').textContent = `${this.state.unlockedLevels.length} / 5`;
-        document.getElementById('stat-badges-count').textContent = `${this.state.badges.length} / 5`;
+        const unlockedStat = document.getElementById('stat-unlocked-count');
+        const badgesStat = document.getElementById('stat-badges-count');
+        if (unlockedStat) unlockedStat.textContent = `${this.state.unlockedLevels.length} / 5`;
+        if (badgesStat) badgesStat.textContent = `${this.state.badges.length} / 5`;
     }
 
     /* -------------------------------------------------------------
@@ -410,17 +502,16 @@ class HalloweenGameController {
             if (!this.state.badges.includes(levelConfig.badge.id)) {
                 this.state.badges.push(levelConfig.badge.id);
             }
-            // Unlock next level if exists
             const nextLvl = trial.levelId + 1;
             if (nextLvl <= 5 && !this.state.unlockedLevels.includes(nextLvl)) {
                 this.state.unlockedLevels.push(nextLvl);
             }
             this.saveState();
 
-            alert(`🎉 SPOOKY TRIUMPH!\nYou conquered ${levelConfig.title} with a score of ${percentage}% (${trial.score}/${total})!\nYou earned the badge: ${levelConfig.badge.name} ${levelConfig.badge.icon}!`);
+            alert(`🎉 SPOOKY TRIUMPH!\n\nYou conquered ${levelConfig.title} with a score of ${percentage}% (${trial.score}/${total})!\n\nYou earned Kapil's Badge: ${levelConfig.badge.name} ${levelConfig.badge.icon}!`);
         } else {
             window.spookyAudio.playJumpScare();
-            alert(`💀 THE SOULS CLAIMED YOU!\nYou scored ${percentage}%, but need ${levelConfig.passScore}% to pass this realm. Re-ignite your torches and try again!`);
+            alert(`💀 THE SOULS CLAIMED YOU!\n\nYou scored ${percentage}%, but need ${levelConfig.passScore}% to pass this realm. Re-ignite your torches and try again!`);
         }
 
         this.exitQuizStage();
@@ -452,7 +543,7 @@ class HalloweenGameController {
             currentIndex: 0,
             userAnswers: {},
             markedForReview: new Set(),
-            timeRemainingSeconds: 3600, // 3600s = 60 mins
+            timeRemainingSeconds: 3600,
             timerInterval: null,
             score: 0,
             submitted: false
@@ -482,8 +573,7 @@ class HalloweenGameController {
             const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
             if (timerBox) timerBox.textContent = formatted;
 
-            // Heartbeat audio cues on urgent countdown
-            if (finalState.timeRemainingSeconds <= 300) { // last 5 minutes
+            if (finalState.timeRemainingSeconds <= 300) {
                 timerBox.parentElement.classList.add('urgent');
                 if (finalState.timeRemainingSeconds % 10 === 0) {
                     window.spookyAudio.playHeartbeat();
@@ -543,7 +633,6 @@ class HalloweenGameController {
             optionsContainer.appendChild(btn);
         });
 
-        // Mark for review toggle state
         const isMarked = finalState.markedForReview.has(finalState.currentIndex);
         const markBtn = document.getElementById('final-mark-btn');
         if (markBtn) {
@@ -551,7 +640,6 @@ class HalloweenGameController {
             markBtn.style.borderColor = isMarked ? "var(--witch-purple)" : "rgba(255, 255, 255, 0.2)";
         }
 
-        // Highlight palette cell
         this.updatePaletteCell(finalState.currentIndex);
     }
 
@@ -599,7 +687,6 @@ class HalloweenGameController {
         clearInterval(finalState.timerInterval);
         finalState.submitted = true;
 
-        // Calculate score
         let correctCount = 0;
         finalState.questions.forEach((q, idx) => {
             if (finalState.userAnswers[idx] === q.answer) {
@@ -622,10 +709,10 @@ class HalloweenGameController {
             }
             this.saveState();
 
-            alert(`🏆 GLORIOUS ASCENSION!\nYou passed the 300-MCQ 1-Hour Halloween Trial with ${finalState.score}% (${correctCount}/300 correct)!\nYou have earned the Supreme Badge: ${lvl5.badge.name} ${lvl5.badge.icon}!\nYour Official Certificate is now ready for download!`);
+            alert(`🏆 GLORIOUS ASCENSION!\n\nYou passed the 300-MCQ 1-Hour Halloween Trial with ${finalState.score}% (${correctCount}/300 correct)!\n\nYou have earned the Supreme Badge: ${lvl5.badge.name} ${lvl5.badge.icon} with Kapil's Medallion!\nYour Official Certificate is now ready for download!`);
         } else {
             window.spookyAudio.playJumpScare();
-            alert(`💀 THE TRIAL CONSUMED YOU!\nYou scored ${finalState.score}% (${correctCount}/300). Minimum required is ${lvl5.passScore}%. Refine your DSA, Aptitude, and Soft Skills, and challenge the Necromancer again!`);
+            alert(`💀 THE TRIAL CONSUMED YOU!\n\nYou scored ${finalState.score}% (${correctCount}/300). Minimum required is ${lvl5.passScore}%. Refine your DSA, Aptitude, and Soft Skills, and challenge the Necromancer again!`);
         }
 
         document.getElementById('final-assessment-stage').style.display = 'none';
@@ -635,7 +722,7 @@ class HalloweenGameController {
     }
 
     /* -------------------------------------------------------------
-       Badges Vault
+       Badges Vault (With Kapil's Large Vampire Medallion)
     -------------------------------------------------------------- */
     renderBadgesVault() {
         const container = document.getElementById('badges-grid');
@@ -647,11 +734,14 @@ class HalloweenGameController {
             const badgeCard = document.createElement('div');
             badgeCard.className = `badge-card ${isUnlocked ? 'unlocked' : 'locked'}`;
             badgeCard.innerHTML = `
-                <div class="badge-icon-huge">${level.badge.icon}</div>
+                <div class="badge-medallion-large">
+                    <img src="kapil_vampire.jpg" alt="Kapil Medallion">
+                    <div class="badge-icon-overlay">${level.badge.icon}</div>
+                </div>
                 <div class="badge-title">${level.badge.name}</div>
                 <div class="badge-lore">${level.badge.lore}</div>
                 <div style="margin-top: 10px; font-size: 0.75rem; color: ${isUnlocked ? 'var(--gold)' : '#64748b'};">
-                    ${isUnlocked ? '★ CLAIMED ★' : '🔒 LOCKED'}
+                    ${isUnlocked ? '★ CLAIMED (Kapil Certified) ★' : '🔒 LOCKED'}
                 </div>
             `;
             container.appendChild(badgeCard);
@@ -668,7 +758,7 @@ class HalloweenGameController {
         const score = this.state.finalAssessment.score || (this.state.completedLevels.length >= 1 ? 88 : 0);
 
         window.halloweenCertificateEngine.renderCertificate(canvas, {
-            name: this.state.studentName,
+            name: this.state.studentName || "Apprentice",
             score: score,
             badges: this.state.badges,
             date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
