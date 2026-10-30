@@ -1,0 +1,682 @@
+// Halloween Powered By Kapil - Main Game Logic Engine
+// Sarlayash Productions
+
+class HalloweenGameController {
+    constructor() {
+        this.state = {
+            currentLevelId: 1,
+            unlockedLevels: [1],
+            completedLevels: [],
+            badges: [],
+            studentName: "Kapil's Halloween Apprentice",
+            finalAssessment: {
+                active: false,
+                questions: [],
+                currentIndex: 0,
+                userAnswers: {},
+                markedForReview: new Set(),
+                timeRemainingSeconds: 3600, // 1 Hour for 300 MCQs
+                timerInterval: null,
+                score: 0,
+                submitted: false
+            },
+            currentLevelTrial: {
+                active: false,
+                levelId: 1,
+                questions: [],
+                currentIndex: 0,
+                score: 0,
+                selectedOption: null,
+                isAnswered: false
+            }
+        };
+
+        this.initStorage();
+        this.initCanvasAnimation();
+        this.bindEvents();
+        this.renderLevelsGrid();
+        this.renderBadgesVault();
+        this.updateCertificatePreview();
+    }
+
+    initStorage() {
+        try {
+            const saved = localStorage.getItem('halloween_kapil_game_state');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (parsed.unlockedLevels) this.state.unlockedLevels = parsed.unlockedLevels;
+                if (parsed.completedLevels) this.state.completedLevels = parsed.completedLevels;
+                if (parsed.badges) this.state.badges = parsed.badges;
+                if (parsed.studentName) this.state.studentName = parsed.studentName;
+            }
+        } catch (e) {
+            console.warn("Could not load saved state", e);
+        }
+    }
+
+    saveState() {
+        try {
+            localStorage.setItem('halloween_kapil_game_state', JSON.stringify({
+                unlockedLevels: this.state.unlockedLevels,
+                completedLevels: this.state.completedLevels,
+                badges: this.state.badges,
+                studentName: this.state.studentName
+            }));
+        } catch (e) {
+            console.warn("Could not persist state", e);
+        }
+    }
+
+    /* -------------------------------------------------------------
+       Atmospheric Canvas Animation (Flying Bats & Spectral Wisps)
+    -------------------------------------------------------------- */
+    initCanvasAnimation() {
+        const canvas = document.getElementById('spooky-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        const resize = () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        };
+        resize();
+        window.addEventListener('resize', resize);
+
+        // Spawn Bats
+        const bats = Array.from({ length: 12 }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height * 0.6,
+            speedX: 1.5 + Math.random() * 2.5,
+            speedY: (Math.random() - 0.5) * 1.2,
+            wingPhase: Math.random() * Math.PI,
+            size: 14 + Math.random() * 12
+        }));
+
+        // Spawn Spectral Spooky Orbs
+        const orbs = Array.from({ length: 25 }, () => ({
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: 1 + Math.random() * 3,
+            vx: (Math.random() - 0.5) * 0.5,
+            vy: -0.3 - Math.random() * 0.6,
+            alpha: 0.2 + Math.random() * 0.5,
+            color: Math.random() > 0.5 ? '#f97316' : '#9333ea'
+        }));
+
+        const loop = () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw and update Orbs
+            orbs.forEach(orb => {
+                orb.x += orb.vx;
+                orb.y += orb.vy;
+                if (orb.y < -10) orb.y = canvas.height + 10;
+                if (orb.x < -10) orb.x = canvas.width + 10;
+                if (orb.x > canvas.width + 10) orb.x = -10;
+
+                ctx.beginPath();
+                ctx.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
+                ctx.fillStyle = orb.color;
+                ctx.globalAlpha = orb.alpha;
+                ctx.fill();
+            });
+
+            // Draw and update Bats
+            bats.forEach(b => {
+                b.x += b.speedX;
+                b.y += b.speedY;
+                b.wingPhase += 0.2;
+
+                if (b.x > canvas.width + 50) {
+                    b.x = -50;
+                    b.y = Math.random() * canvas.height * 0.6;
+                }
+
+                ctx.save();
+                ctx.translate(b.x, b.y);
+                ctx.fillStyle = '#0f051d';
+                ctx.strokeStyle = '#38164f';
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = 0.8;
+
+                // Bat body & flapping wings
+                const flap = Math.sin(b.wingPhase) * (b.size * 0.6);
+                ctx.beginPath();
+                ctx.moveTo(-b.size, flap);
+                ctx.quadraticCurveTo(-b.size * 0.4, -flap * 0.5, 0, 0);
+                ctx.quadraticCurveTo(b.size * 0.4, -flap * 0.5, b.size, flap);
+                ctx.quadraticCurveTo(b.size * 0.5, flap * 0.5, 0, b.size * 0.4);
+                ctx.quadraticCurveTo(-b.size * 0.5, flap * 0.5, -b.size, flap);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.restore();
+            });
+
+            ctx.globalAlpha = 1.0;
+            requestAnimationFrame(loop);
+        };
+        requestAnimationFrame(loop);
+    }
+
+    bindEvents() {
+        // Sound toggle
+        const soundBtn = document.getElementById('sound-toggle-btn');
+        if (soundBtn) {
+            soundBtn.addEventListener('click', () => {
+                window.spookyAudio.init();
+                const muted = window.spookyAudio.toggleMute();
+                soundBtn.innerHTML = muted ? "🔇 Audio: Muted" : "🔊 Audio: Spooky On";
+                soundBtn.classList.toggle('active', !muted);
+                if (!muted) {
+                    window.spookyAudio.startAmbientDrone();
+                    window.spookyAudio.playTollBell();
+                }
+            });
+        }
+
+        // Ambient trigger on first user click anywhere
+        const startAudioOnce = () => {
+            window.spookyAudio.init();
+            window.spookyAudio.startAmbientDrone();
+            document.removeEventListener('click', startAudioOnce);
+        };
+        document.addEventListener('click', startAudioOnce, { once: true });
+
+        // Navigation Tabs
+        document.querySelectorAll('.nav-tab').forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                const targetView = e.currentTarget.dataset.view;
+                this.switchView(targetView);
+            });
+        });
+
+        // Certificate Name Input Listener
+        const certNameInput = document.getElementById('cert-student-name');
+        if (certNameInput) {
+            certNameInput.value = this.state.studentName;
+            certNameInput.addEventListener('input', (e) => {
+                this.state.studentName = e.target.value;
+                this.saveState();
+                this.updateCertificatePreview();
+            });
+        }
+
+        // Certificate Download Button
+        const downloadBtn = document.getElementById('download-cert-btn');
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', () => {
+                const canvas = document.getElementById('certificate-canvas');
+                window.halloweenCertificateEngine.downloadCertificatePNG(canvas, this.state.studentName);
+                window.spookyAudio.playLevelComplete();
+            });
+        }
+
+        // Modal / Quiz action buttons
+        document.getElementById('next-question-btn')?.addEventListener('click', () => this.handleNextQuestion());
+        document.getElementById('exit-quiz-btn')?.addEventListener('click', () => this.exitQuizStage());
+
+        // Final Assessment specific buttons
+        document.getElementById('final-prev-btn')?.addEventListener('click', () => this.navigateFinalQuestion(-1));
+        document.getElementById('final-next-btn')?.addEventListener('click', () => this.navigateFinalQuestion(1));
+        document.getElementById('final-mark-btn')?.addEventListener('click', () => this.toggleFinalMarkForReview());
+        document.getElementById('final-submit-btn')?.addEventListener('click', () => this.submitFinalAssessment());
+    }
+
+    switchView(viewName) {
+        document.querySelectorAll('.nav-tab').forEach(t => {
+            t.classList.toggle('active', t.dataset.view === viewName);
+        });
+
+        document.getElementById('view-quest-map').style.display = viewName === 'quest' ? 'block' : 'none';
+        document.getElementById('view-badges-vault').style.display = viewName === 'badges' ? 'block' : 'none';
+        document.getElementById('view-certificate').style.display = viewName === 'cert' ? 'block' : 'none';
+
+        if (viewName === 'cert') {
+            this.updateCertificatePreview();
+        }
+    }
+
+    /* -------------------------------------------------------------
+       Quest Map & Levels Rendering
+    -------------------------------------------------------------- */
+    renderLevelsGrid() {
+        const grid = document.getElementById('levels-grid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        window.GAME_DATA.levels.forEach(level => {
+            const isUnlocked = this.state.unlockedLevels.includes(level.id);
+            const isCompleted = this.state.completedLevels.includes(level.id);
+
+            const card = document.createElement('div');
+            card.className = `level-card ${isCompleted ? 'completed' : (isUnlocked ? 'unlocked' : 'locked')}`;
+            card.innerHTML = `
+                <div>
+                    <div class="level-header">
+                        <div class="level-badge-preview">${level.badge.icon}</div>
+                        <span class="level-num-pill">LEVEL 0${level.id}</span>
+                    </div>
+                    <h3>${level.title}</h3>
+                    <p>${level.subtitle}</p>
+                </div>
+                <div>
+                    <div class="level-status-row">
+                        <span class="level-status-tag ${isCompleted ? 'status-completed' : (isUnlocked ? 'status-unlocked' : 'status-locked')}">
+                            ${isCompleted ? '✓ CLEARED' : (isUnlocked ? '⚡ READY' : '🔒 LOCKED')}
+                        </span>
+                        <span style="font-size: 0.75rem; color: #94a3b8;">Pass: ${level.passScore}%</span>
+                    </div>
+                    <button class="spooky-btn-primary" style="width: 100%;" 
+                        ${!isUnlocked ? 'disabled' : ''} 
+                        onclick="window.gameApp.startLevel(${level.id})">
+                        ${isCompleted ? 'Replay Realm' : (level.id === 5 ? 'Enter 300 MCQ Trial (1 Hr)' : 'Enter Realm')}
+                    </button>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+
+        // Update overall stats in Hero
+        document.getElementById('stat-unlocked-count').textContent = `${this.state.unlockedLevels.length} / 5`;
+        document.getElementById('stat-badges-count').textContent = `${this.state.badges.length} / 5`;
+    }
+
+    /* -------------------------------------------------------------
+       Starting a Level
+    -------------------------------------------------------------- */
+    startLevel(levelId) {
+        window.spookyAudio.init();
+        window.spookyAudio.playTollBell();
+
+        if (levelId === 5) {
+            this.startFinalAssessment();
+            return;
+        }
+
+        // Regular levels (1-4)
+        let questions = [];
+        if (levelId === 1) questions = window.GAME_DATA.level1;
+        else if (levelId === 2) questions = window.GAME_DATA.level2;
+        else if (levelId === 3) questions = window.GAME_DATA.level3;
+        else if (levelId === 4) questions = window.GAME_DATA.level4;
+
+        this.state.currentLevelTrial = {
+            active: true,
+            levelId: levelId,
+            questions: [...questions],
+            currentIndex: 0,
+            score: 0,
+            selectedOption: null,
+            isAnswered: false
+        };
+
+        document.getElementById('view-quest-map').style.display = 'none';
+        document.getElementById('quiz-stage-single').style.display = 'block';
+
+        this.renderSingleQuestion();
+    }
+
+    renderSingleQuestion() {
+        const trial = this.state.currentLevelTrial;
+        const q = trial.questions[trial.currentIndex];
+        const levelConfig = window.GAME_DATA.levels.find(l => l.id === trial.levelId);
+
+        document.getElementById('quiz-level-title').textContent = `${levelConfig.title} - Question ${trial.currentIndex + 1}/${trial.questions.length}`;
+        document.getElementById('quiz-question-prompt').textContent = q.question;
+
+        const optionsContainer = document.getElementById('quiz-options-container');
+        optionsContainer.innerHTML = '';
+
+        const prefixes = ['A', 'B', 'C', 'D'];
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = `<span class="option-prefix">${prefixes[idx]}</span> <span>${opt}</span>`;
+            btn.addEventListener('click', () => this.selectSingleOption(idx));
+            optionsContainer.appendChild(btn);
+        });
+
+        const explanationBox = document.getElementById('quiz-explanation-box');
+        explanationBox.style.display = 'none';
+
+        const nextBtn = document.getElementById('next-question-btn');
+        nextBtn.textContent = (trial.currentIndex === trial.questions.length - 1) ? "Finalize Realm" : "Next Question";
+        nextBtn.style.display = 'none';
+
+        trial.selectedOption = null;
+        trial.isAnswered = false;
+    }
+
+    selectSingleOption(optIdx) {
+        const trial = this.state.currentLevelTrial;
+        if (trial.isAnswered) return;
+
+        trial.isAnswered = true;
+        trial.selectedOption = optIdx;
+
+        const q = trial.questions[trial.currentIndex];
+        const isCorrect = (optIdx === q.answer);
+
+        const options = document.querySelectorAll('#quiz-options-container .option-btn');
+        options.forEach((btn, idx) => {
+            if (idx === q.answer) {
+                btn.classList.add('correct');
+            } else if (idx === optIdx && !isCorrect) {
+                btn.classList.add('wrong');
+            }
+        });
+
+        const explanationBox = document.getElementById('quiz-explanation-box');
+        document.getElementById('quiz-explanation-text').textContent = q.explanation;
+        explanationBox.style.display = 'block';
+
+        if (isCorrect) {
+            trial.score++;
+            window.spookyAudio.playCorrect();
+        } else {
+            window.spookyAudio.playWrong();
+            document.body.classList.add('horror-shake');
+            setTimeout(() => document.body.classList.remove('horror-shake'), 450);
+        }
+
+        document.getElementById('next-question-btn').style.display = 'inline-block';
+    }
+
+    handleNextQuestion() {
+        const trial = this.state.currentLevelTrial;
+        trial.currentIndex++;
+
+        if (trial.currentIndex < trial.questions.length) {
+            this.renderSingleQuestion();
+        } else {
+            this.concludeSingleLevel();
+        }
+    }
+
+    concludeSingleLevel() {
+        const trial = this.state.currentLevelTrial;
+        const total = trial.questions.length;
+        const percentage = Math.round((trial.score / total) * 100);
+        const levelConfig = window.GAME_DATA.levels.find(l => l.id === trial.levelId);
+
+        const passed = percentage >= levelConfig.passScore;
+
+        if (passed) {
+            window.spookyAudio.playLevelComplete();
+            if (!this.state.completedLevels.includes(trial.levelId)) {
+                this.state.completedLevels.push(trial.levelId);
+            }
+            if (!this.state.badges.includes(levelConfig.badge.id)) {
+                this.state.badges.push(levelConfig.badge.id);
+            }
+            // Unlock next level if exists
+            const nextLvl = trial.levelId + 1;
+            if (nextLvl <= 5 && !this.state.unlockedLevels.includes(nextLvl)) {
+                this.state.unlockedLevels.push(nextLvl);
+            }
+            this.saveState();
+
+            alert(`🎉 SPOOKY TRIUMPH!\nYou conquered ${levelConfig.title} with a score of ${percentage}% (${trial.score}/${total})!\nYou earned the badge: ${levelConfig.badge.name} ${levelConfig.badge.icon}!`);
+        } else {
+            window.spookyAudio.playJumpScare();
+            alert(`💀 THE SOULS CLAIMED YOU!\nYou scored ${percentage}%, but need ${levelConfig.passScore}% to pass this realm. Re-ignite your torches and try again!`);
+        }
+
+        this.exitQuizStage();
+    }
+
+    exitQuizStage() {
+        document.getElementById('quiz-stage-single').style.display = 'none';
+        document.getElementById('view-quest-map').style.display = 'block';
+        this.renderLevelsGrid();
+        this.renderBadgesVault();
+        this.updateCertificatePreview();
+    }
+
+    /* -------------------------------------------------------------
+       Level 5: Grand Final Assessment (300 MCQs, 1-Hour Timer)
+    -------------------------------------------------------------- */
+    startFinalAssessment() {
+        const confirmed = confirm("⚠️ ENTERING THE 1-HOUR WITCHING TRIAL ⚠️\n\nYou are about to begin the 300-MCQ Final Assessment.\nTime Limit: Strictly 60 Minutes (1 Hour).\nAre you prepared, Apprentice?");
+        if (!confirmed) return;
+
+        window.spookyAudio.init();
+        window.spookyAudio.playHeartbeat();
+
+        const all300 = window.GAME_DATA.getFinal300Questions();
+
+        this.state.finalAssessment = {
+            active: true,
+            questions: all300,
+            currentIndex: 0,
+            userAnswers: {},
+            markedForReview: new Set(),
+            timeRemainingSeconds: 3600, // 3600s = 60 mins
+            timerInterval: null,
+            score: 0,
+            submitted: false
+        };
+
+        document.getElementById('view-quest-map').style.display = 'none';
+        document.getElementById('final-assessment-stage').style.display = 'block';
+
+        this.buildFinalPalette();
+        this.renderFinalQuestion();
+        this.startFinalTimer();
+    }
+
+    startFinalTimer() {
+        if (this.state.finalAssessment.timerInterval) {
+            clearInterval(this.state.finalAssessment.timerInterval);
+        }
+
+        const timerBox = document.getElementById('final-timer-display');
+
+        this.state.finalAssessment.timerInterval = setInterval(() => {
+            const finalState = this.state.finalAssessment;
+            finalState.timeRemainingSeconds--;
+
+            const mins = Math.floor(finalState.timeRemainingSeconds / 60);
+            const secs = finalState.timeRemainingSeconds % 60;
+            const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            if (timerBox) timerBox.textContent = formatted;
+
+            // Heartbeat audio cues on urgent countdown
+            if (finalState.timeRemainingSeconds <= 300) { // last 5 minutes
+                timerBox.parentElement.classList.add('urgent');
+                if (finalState.timeRemainingSeconds % 10 === 0) {
+                    window.spookyAudio.playHeartbeat();
+                }
+            }
+
+            if (finalState.timeRemainingSeconds <= 0) {
+                clearInterval(finalState.timerInterval);
+                alert("⏳ TIME HAS EXPIRED! The Netherworld bell tolls. Submitting your examination now...");
+                this.submitFinalAssessment();
+            }
+        }, 1000);
+    }
+
+    buildFinalPalette() {
+        const palette = document.getElementById('final-palette-grid');
+        if (!palette) return;
+        palette.innerHTML = '';
+
+        for (let i = 0; i < 300; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'palette-cell';
+            cell.id = `palette-cell-${i}`;
+            cell.textContent = i + 1;
+            cell.addEventListener('click', () => {
+                this.state.finalAssessment.currentIndex = i;
+                this.renderFinalQuestion();
+            });
+            palette.appendChild(cell);
+        }
+    }
+
+    renderFinalQuestion() {
+        const finalState = this.state.finalAssessment;
+        const q = finalState.questions[finalState.currentIndex];
+
+        document.getElementById('final-progress-indicator').textContent = `Question ${finalState.currentIndex + 1} of 300`;
+        document.getElementById('final-category-tag').textContent = q.category || "DSA / Aptitude / Soft Skills";
+        document.getElementById('final-question-text').textContent = q.question;
+
+        const optionsContainer = document.getElementById('final-options-container');
+        optionsContainer.innerHTML = '';
+
+        const selectedIdx = finalState.userAnswers[finalState.currentIndex];
+        const prefixes = ['A', 'B', 'C', 'D'];
+
+        q.options.forEach((opt, idx) => {
+            const btn = document.createElement('button');
+            btn.className = `option-btn ${selectedIdx === idx ? 'selected' : ''}`;
+            btn.innerHTML = `<span class="option-prefix">${prefixes[idx]}</span> <span>${opt}</span>`;
+            btn.addEventListener('click', () => {
+                finalState.userAnswers[finalState.currentIndex] = idx;
+                window.spookyAudio.playTick();
+                this.renderFinalQuestion();
+                this.updatePaletteCell(finalState.currentIndex);
+            });
+            optionsContainer.appendChild(btn);
+        });
+
+        // Mark for review toggle state
+        const isMarked = finalState.markedForReview.has(finalState.currentIndex);
+        const markBtn = document.getElementById('final-mark-btn');
+        if (markBtn) {
+            markBtn.textContent = isMarked ? "★ Marked for Review" : "☆ Mark for Review";
+            markBtn.style.borderColor = isMarked ? "var(--witch-purple)" : "rgba(255, 255, 255, 0.2)";
+        }
+
+        // Highlight palette cell
+        this.updatePaletteCell(finalState.currentIndex);
+    }
+
+    updatePaletteCell(index) {
+        const finalState = this.state.finalAssessment;
+        const cell = document.getElementById(`palette-cell-${index}`);
+        if (!cell) return;
+
+        cell.className = 'palette-cell';
+        if (finalState.currentIndex === index) {
+            cell.classList.add('current');
+        }
+        if (finalState.userAnswers[index] !== undefined) {
+            cell.classList.add('answered');
+        }
+        if (finalState.markedForReview.has(index)) {
+            cell.classList.add('marked');
+        }
+    }
+
+    navigateFinalQuestion(direction) {
+        const finalState = this.state.finalAssessment;
+        const target = finalState.currentIndex + direction;
+        if (target >= 0 && target < finalState.questions.length) {
+            finalState.currentIndex = target;
+            this.renderFinalQuestion();
+        }
+    }
+
+    toggleFinalMarkForReview() {
+        const finalState = this.state.finalAssessment;
+        const idx = finalState.currentIndex;
+        if (finalState.markedForReview.has(idx)) {
+            finalState.markedForReview.delete(idx);
+        } else {
+            finalState.markedForReview.add(idx);
+        }
+        this.renderFinalQuestion();
+    }
+
+    submitFinalAssessment() {
+        const finalState = this.state.finalAssessment;
+        if (finalState.submitted) return;
+
+        clearInterval(finalState.timerInterval);
+        finalState.submitted = true;
+
+        // Calculate score
+        let correctCount = 0;
+        finalState.questions.forEach((q, idx) => {
+            if (finalState.userAnswers[idx] === q.answer) {
+                correctCount++;
+            }
+        });
+
+        finalState.score = Math.round((correctCount / finalState.questions.length) * 100);
+
+        const lvl5 = window.GAME_DATA.levels.find(l => l.id === 5);
+        const passed = finalState.score >= lvl5.passScore;
+
+        if (passed) {
+            window.spookyAudio.playLevelComplete();
+            if (!this.state.completedLevels.includes(5)) {
+                this.state.completedLevels.push(5);
+            }
+            if (!this.state.badges.includes(lvl5.badge.id)) {
+                this.state.badges.push(lvl5.badge.id);
+            }
+            this.saveState();
+
+            alert(`🏆 GLORIOUS ASCENSION!\nYou passed the 300-MCQ 1-Hour Halloween Trial with ${finalState.score}% (${correctCount}/300 correct)!\nYou have earned the Supreme Badge: ${lvl5.badge.name} ${lvl5.badge.icon}!\nYour Official Certificate is now ready for download!`);
+        } else {
+            window.spookyAudio.playJumpScare();
+            alert(`💀 THE TRIAL CONSUMED YOU!\nYou scored ${finalState.score}% (${correctCount}/300). Minimum required is ${lvl5.passScore}%. Refine your DSA, Aptitude, and Soft Skills, and challenge the Necromancer again!`);
+        }
+
+        document.getElementById('final-assessment-stage').style.display = 'none';
+        this.switchView('cert');
+        this.renderLevelsGrid();
+        this.renderBadgesVault();
+    }
+
+    /* -------------------------------------------------------------
+       Badges Vault
+    -------------------------------------------------------------- */
+    renderBadgesVault() {
+        const container = document.getElementById('badges-grid');
+        if (!container) return;
+        container.innerHTML = '';
+
+        window.GAME_DATA.levels.forEach(level => {
+            const isUnlocked = this.state.badges.includes(level.badge.id);
+            const badgeCard = document.createElement('div');
+            badgeCard.className = `badge-card ${isUnlocked ? 'unlocked' : 'locked'}`;
+            badgeCard.innerHTML = `
+                <div class="badge-icon-huge">${level.badge.icon}</div>
+                <div class="badge-title">${level.badge.name}</div>
+                <div class="badge-lore">${level.badge.lore}</div>
+                <div style="margin-top: 10px; font-size: 0.75rem; color: ${isUnlocked ? 'var(--gold)' : '#64748b'};">
+                    ${isUnlocked ? '★ CLAIMED ★' : '🔒 LOCKED'}
+                </div>
+            `;
+            container.appendChild(badgeCard);
+        });
+    }
+
+    /* -------------------------------------------------------------
+       Certificate Preview & Rendering
+    -------------------------------------------------------------- */
+    updateCertificatePreview() {
+        const canvas = document.getElementById('certificate-canvas');
+        if (!canvas) return;
+
+        const score = this.state.finalAssessment.score || (this.state.completedLevels.length >= 1 ? 88 : 0);
+
+        window.halloweenCertificateEngine.renderCertificate(canvas, {
+            name: this.state.studentName,
+            score: score,
+            badges: this.state.badges,
+            date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+        });
+    }
+}
+
+// Global Launcher
+window.addEventListener('DOMContentLoaded', () => {
+    window.gameApp = new HalloweenGameController();
+});

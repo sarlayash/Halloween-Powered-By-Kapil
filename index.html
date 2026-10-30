@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halloween Powered By Kapil | Sarlayash Productions</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎃</text></svg>">
+</head>
+<body>
+
+    <!-- Atmospheric Spooky Background Canvas & Fog -->
+    <canvas id="spooky-canvas"></canvas>
+    <div class="fog-layer"></div>
+
+    <div class="app-container">
+
+        <!-- Spooky Brand Header -->
+        <header class="spooky-header">
+            <div class="brand-wrapper">
+                <div class="pumpkin-mascot">🎃</div>
+                <div class="brand-text">
+                    <h1>HALLOWEEN POWERED BY KAPIL</h1>
+                    <div class="brand-subtitle">SARLAYASH PRODUCTIONS • OCCULT LEARNING ODYSSEY</div>
+                </div>
+            </div>
+            <div class="header-controls">
+                <button id="sound-toggle-btn" class="spooky-btn-pill sound-btn active">
+                    🔊 Audio: Spooky On
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-view="quest">
+                <span>🗺️</span> 5 Haunted Levels
+            </button>
+            <button class="nav-tab" data-view="badges">
+                <span>🏆</span> Badges Vault
+            </button>
+            <button class="nav-tab" data-view="cert">
+                <span>📜</span> Certificate Sanctuary
+            </button>
+        </nav>
+
+        <!-- VIEW 1: QUEST MAP & LEVEL PROGRESSION -->
+        <section id="view-quest-map">
+            <!-- Hero Lore Banner -->
+            <div class="hero-banner">
+                <span class="hero-tag">Sarlayash Productions Flagship Game</span>
+                <h2>Conquer The 5 Netherworld Realms</h2>
+                <p>
+                    Welcome, brave learner, to <strong>Halloween Powered By Kapil</strong>. Journey through ancient crypts where algorithms awaken, unravel aptitude labyrinths, tame corporate demons through emotional intelligence and soft skills, and withstand the supreme <strong>1-Hour 300-MCQ Final Assessment</strong> to claim your enchanted certificate of mastery.
+                </p>
+                <div class="hero-stats">
+                    <div class="hero-stat-card">
+                        <span class="hero-stat-num" id="stat-unlocked-count">1 / 5</span>
+                        <span class="hero-stat-label">Realms Unlocked</span>
+                    </div>
+                    <div class="hero-stat-card">
+                        <span class="hero-stat-num" id="stat-badges-count">0 / 5</span>
+                        <span class="hero-stat-label">Badges Claimed</span>
+                    </div>
+                    <div class="hero-stat-card">
+                        <span class="hero-stat-num">300 MCQs</span>
+                        <span class="hero-stat-label">Final Witching Trial</span>
+                    </div>
+                    <div class="hero-stat-card">
+                        <span class="hero-stat-num">60 Mins</span>
+                        <span class="hero-stat-label">Final Exam Duration</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Levels Grid (5 Levels) -->
+            <div class="levels-grid" id="levels-grid">
+                <!-- Dynamically populated by game.js -->
+            </div>
+        </section>
+
+        <!-- QUIZ STAGE (Single Levels 1 - 4) -->
+        <div id="quiz-stage-single" class="quiz-stage">
+            <div class="quiz-top-bar">
+                <div id="quiz-level-title" class="quiz-progress-text">Level 1: Crypt of Algorithms</div>
+                <button id="exit-quiz-btn" class="spooky-btn-pill">✕ Retreat to Map</button>
+            </div>
+
+            <div class="question-box">
+                <div id="quiz-question-prompt" class="question-prompt">
+                    Loading ghostly algorithmic riddle...
+                </div>
+                <div id="quiz-options-container" class="options-container">
+                    <!-- Dynamic option buttons -->
+                </div>
+            </div>
+
+            <!-- Deep Learning / Explanation Modal -->
+            <div id="quiz-explanation-box" class="explanation-box">
+                <div class="explanation-title">✨ Grimoire Lore & Technical Breakdown</div>
+                <div id="quiz-explanation-text" class="explanation-body"></div>
+            </div>
+
+            <div style="text-align: right;">
+                <button id="next-question-btn" class="spooky-btn-primary" style="display: none;">
+                    Next Question
+                </button>
+            </div>
+        </div>
+
+        <!-- FINAL ASSESSMENT STAGE (Level 5: 300 MCQs, 1-Hour Timer) -->
+        <div id="final-assessment-stage" class="quiz-stage">
+            <div class="quiz-top-bar">
+                <div>
+                    <h3 style="font-family: var(--title-font); color: var(--gold); margin-bottom: 4px;">
+                        👑 The Grand Necromancer's Final Trial (300 MCQs)
+                    </h3>
+                    <span id="final-progress-indicator" class="quiz-progress-text">Question 1 of 300</span>
+                </div>
+
+                <div class="quiz-timer-box">
+                    <span>⏳ TIME:</span>
+                    <span id="final-timer-display">60:00</span>
+                </div>
+            </div>
+
+            <div class="question-box">
+                <div id="final-category-tag" class="question-category-tag">Data Structures & Algorithms</div>
+                <div id="final-question-text" class="question-prompt">Loading final trial question...</div>
+                <div id="final-options-container" class="options-container">
+                    <!-- Option buttons -->
+                </div>
+            </div>
+
+            <!-- Navigation Controls -->
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;">
+                <div style="display: flex; gap: 10px;">
+                    <button id="final-prev-btn" class="spooky-btn-pill">◀ Previous</button>
+                    <button id="final-next-btn" class="spooky-btn-pill">Next ▶</button>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button id="final-mark-btn" class="spooky-btn-pill">☆ Mark for Review</button>
+                    <button id="final-submit-btn" class="spooky-btn-primary" style="background: linear-gradient(135deg, #16a34a, #15803d);">
+                        ✓ Submit 300-MCQ Exam
+                    </button>
+                </div>
+            </div>
+
+            <!-- 300 MCQs Question Palette Grid -->
+            <div class="palette-container">
+                <div class="palette-header">
+                    <span>Question Navigator (1 to 300)</span>
+                    <span style="display: flex; gap: 14px; font-size: 0.75rem;">
+                        <span style="color: #bbf7d0;">● Answered</span>
+                        <span style="color: #f3e8ff;">● Marked</span>
+                        <span style="color: var(--gold);">● Current</span>
+                    </span>
+                </div>
+                <div class="palette-grid" id="final-palette-grid">
+                    <!-- 300 cells generated by game.js -->
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW 2: BADGES VAULT -->
+        <section id="view-badges-vault" style="display: none;">
+            <div class="badges-vault">
+                <h2>🏆 Sacred Badges of the Netherworld</h2>
+                <p>Complete each level to earn its corresponding occult badge. Unlock all 5 badges to receive the Sarlayash Productions Master Seal on your certificate.</p>
+                <div class="badges-grid" id="badges-grid">
+                    <!-- Injected dynamically by game.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: CERTIFICATE SANCTUARY (Zero Spillover PNG Download) -->
+        <section id="view-certificate" style="display: none;">
+            <div class="cert-section">
+                <h2 style="font-family: var(--title-font); font-size: 1.8rem; color: var(--gold); margin-bottom: 12px;">
+                    📜 The Sanctum of Certification
+                </h2>
+                <p style="color: #94a3b8; margin-bottom: 24px; line-height: 1.6;">
+                    Verified by <strong>Sarlayash Productions</strong> and <strong>Halloween Powered By Kapil</strong>. Enter your name below to generate your crisp high-definition certificate with adaptive typography to guarantee <strong>zero text overlapping or spillover</strong>.
+                </p>
+
+                <div class="cert-input-bar">
+                    <input type="text" id="cert-student-name" class="cert-input" placeholder="Enter Your Full Name..." maxlength="45">
+                    <button id="download-cert-btn" class="spooky-btn-primary" style="padding: 14px 26px;">
+                        📥 Download Official PNG Certificate
+                    </button>
+                </div>
+
+                <div class="canvas-preview-container">
+                    <canvas id="certificate-canvas"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Spooky Footer -->
+        <footer class="spooky-footer">
+            <p>
+                Created with Occult Passion by <span class="footer-brand">SARLAYASH PRODUCTIONS</span> • 
+                <span style="color: var(--gold);">Halloween Powered By Kapil</span>
+            </p>
+            <p style="margin-top: 6px; font-size: 0.78rem;">
+                DSA • Aptitude • Soft Skills • Fun • Gamification • All Rights Reserved © 2026
+            </p>
+        </footer>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="audio.js"></script>
+    <script src="questions.js"></script>
+    <script src="certificate.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
