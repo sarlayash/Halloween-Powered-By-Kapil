@@ -218,6 +218,23 @@ class SpookyAudioEngine {
         osc.stop(t + 0.05);
     }
 
+    playWheelClick(pitch = 1200) {
+        if (this.isMuted) return;
+        this.init();
+        const t = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(pitch, t);
+        osc.frequency.exponentialRampToValueAtTime(pitch * 0.5, t + 0.035);
+        gain.gain.setValueAtTime(0.09, t);
+        gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.038);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.04);
+    }
+
     playLevelComplete() {
         if (this.isMuted) return;
         this.init();

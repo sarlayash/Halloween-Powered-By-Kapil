@@ -1067,3 +1067,230 @@ body {
         height: 190px;
     }
 }
+
+
+/* TRICK OR TREAT SPINNING WHEEL SECTION */
+.wheel-section {
+    background: var(--bg-card);
+    border: 2px solid var(--pumpkin-orange);
+    border-radius: 24px;
+    padding: 32px 28px;
+    margin-bottom: 36px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), inset 0 0 30px rgba(249, 115, 22, 0.15);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.wheel-section::after {
+    content: '🎡';
+    position: absolute;
+    right: 20px;
+    bottom: -15px;
+    font-size: 140px;
+    opacity: 0.08;
+    pointer-events: none;
+}
+
+.wheel-hud {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 28px;
+}
+
+.wheel-stat-chip {
+    background: rgba(15, 7, 28, 0.85);
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    border-radius: 14px;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+.wheel-chip-icon {
+    font-size: 1.6rem;
+}
+
+.wheel-chip-val {
+    font-family: var(--title-font);
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--gold);
+    display: block;
+    line-height: 1;
+}
+
+.wheel-chip-lbl {
+    font-size: 0.72rem;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.wheel-canvas-wrapper {
+    position: relative;
+    display: inline-block;
+    margin: 0 auto 24px;
+    padding: 12px;
+    background: radial-gradient(circle, rgba(147, 51, 234, 0.25), transparent 70%);
+    border-radius: 50%;
+}
+
+#spooky-wheel-canvas {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    filter: drop-shadow(0 0 25px rgba(0, 0, 0, 0.9));
+}
+
+.wheel-controls {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-top: 10px;
+}
+
+.spin-btn-huge {
+    background: linear-gradient(135deg, #b91c1c, #ea580c);
+    border: 2px solid var(--gold);
+    color: #ffffff;
+    font-family: var(--title-font);
+    font-size: 1.15rem;
+    font-weight: 900;
+    padding: 16px 36px;
+    border-radius: 40px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    box-shadow: 0 0 25px rgba(234, 88, 12, 0.6), inset 0 0 12px rgba(255, 255, 255, 0.2);
+    transition: all 0.25s ease;
+}
+
+.spin-btn-huge:hover:not(:disabled) {
+    background: linear-gradient(135deg, #dc2626, #f97316);
+    transform: scale(1.04);
+    box-shadow: 0 0 35px rgba(249, 115, 22, 0.8);
+}
+
+.spin-btn-huge:disabled {
+    background: #334155;
+    border-color: #64748b;
+    color: #94a3b8;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+/* Lifelines Bar in Quizzes */
+.lifelines-bar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.lifeline-btn {
+    background: rgba(30, 15, 50, 0.85);
+    border: 1px solid rgba(245, 158, 11, 0.5);
+    color: #fde68a;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-family: var(--title-font);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.lifeline-btn:hover:not(:disabled) {
+    background: rgba(45, 20, 75, 0.95);
+    border-color: var(--gold);
+    color: #fff;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+
+.lifeline-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Wheel Result Modal */
+.wheel-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 2, 12, 0.94);
+    backdrop-filter: blur(14px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.wheel-modal-card {
+    background: linear-gradient(145deg, #1d0b30, #0c0418);
+    border: 2px solid var(--gold);
+    border-radius: 24px;
+    max-width: 580px;
+    width: 100%;
+    padding: 32px 28px;
+    text-align: center;
+    box-shadow: 0 0 50px rgba(245, 158, 11, 0.35);
+    animation: fadeIn 0.35s ease;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.wheel-modal-icon {
+    font-size: 4rem;
+    margin-bottom: 12px;
+    animation: pumpkinFlicker 2s infinite alternate;
+}
+
+.wheel-modal-card h2 {
+    font-family: var(--horror-font);
+    font-size: 2.2rem;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+}
+
+.wheel-modal-desc {
+    color: #e2e8f0;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    margin-bottom: 22px;
+}
+
+.wheel-trick-challenge {
+    background: rgba(10, 4, 20, 0.85);
+    border: 1px solid rgba(220, 38, 38, 0.5);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 22px;
+    text-align: left;
+}
+
+.wheel-trick-challenge h4 {
+    color: #f87171;
+    font-family: var(--title-font);
+    font-size: 0.92rem;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+.wheel-trick-prompt {
+    font-size: 0.95rem;
+    color: #f8fafc;
+    line-height: 1.5;
+    margin-bottom: 14px;
+}

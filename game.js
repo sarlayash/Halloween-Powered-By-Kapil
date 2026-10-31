@@ -1,6 +1,6 @@
 // Halloween Powered By Kapil - Main Game Logic Engine
 // Sarlayash Productions
-// Deep Tested & Hardened with Founder Integration, Onboarding, Badges, and Reset
+// Deep Tested & Hardened with Founder Integration, Badges, Trick or Treat Wheel, and Lifelines
 
 class HalloweenGameController {
     constructor() {
@@ -10,6 +10,11 @@ class HalloweenGameController {
             completedLevels: [],
             badges: [],
             studentName: "",
+            wheelSpins: 3,
+            occultXP: 0,
+            spectralShields: 0,
+            elixirsOfIntuition: 0,
+            specialTitles: [],
             finalAssessment: {
                 active: false,
                 questions: [],
@@ -58,6 +63,11 @@ class HalloweenGameController {
                 if (parsed.studentName && typeof parsed.studentName === 'string') {
                     this.state.studentName = parsed.studentName.trim();
                 }
+                if (typeof parsed.wheelSpins === 'number') this.state.wheelSpins = parsed.wheelSpins;
+                if (typeof parsed.occultXP === 'number') this.state.occultXP = parsed.occultXP;
+                if (typeof parsed.spectralShields === 'number') this.state.spectralShields = parsed.spectralShields;
+                if (typeof parsed.elixirsOfIntuition === 'number') this.state.elixirsOfIntuition = parsed.elixirsOfIntuition;
+                if (Array.isArray(parsed.specialTitles)) this.state.specialTitles = parsed.specialTitles;
             }
         } catch (e) {
             console.warn("Could not load saved state", e);
@@ -70,7 +80,12 @@ class HalloweenGameController {
                 unlockedLevels: this.state.unlockedLevels,
                 completedLevels: this.state.completedLevels,
                 badges: this.state.badges,
-                studentName: this.state.studentName
+                studentName: this.state.studentName,
+                wheelSpins: this.state.wheelSpins,
+                occultXP: this.state.occultXP,
+                spectralShields: this.state.spectralShields,
+                elixirsOfIntuition: this.state.elixirsOfIntuition,
+                specialTitles: this.state.specialTitles
             }));
         } catch (e) {
             console.warn("Could not persist state", e);
@@ -106,7 +121,6 @@ class HalloweenGameController {
         resize();
         window.addEventListener('resize', resize);
 
-        // Spawn Bats
         const bats = Array.from({ length: 12 }, () => ({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height * 0.6,
@@ -116,7 +130,6 @@ class HalloweenGameController {
             size: 14 + Math.random() * 12
         }));
 
-        // Spawn Spectral Spooky Orbs
         const orbs = Array.from({ length: 25 }, () => ({
             x: Math.random() * canvas.width,
             y: Math.random() * canvas.height,
@@ -130,7 +143,6 @@ class HalloweenGameController {
         const loop = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw and update Orbs
             orbs.forEach(orb => {
                 orb.x += orb.vx;
                 orb.y += orb.vy;
@@ -145,7 +157,6 @@ class HalloweenGameController {
                 ctx.fill();
             });
 
-            // Draw and update Bats
             bats.forEach(b => {
                 b.x += b.speedX;
                 b.speedY = Math.sin(b.x * 0.02) * 0.8;
@@ -164,7 +175,6 @@ class HalloweenGameController {
                 ctx.lineWidth = 1;
                 ctx.globalAlpha = 0.8;
 
-                // Bat body & flapping wings
                 const flap = Math.sin(b.wingPhase) * (b.size * 0.6);
                 ctx.beginPath();
                 ctx.moveTo(-b.size, flap);
@@ -227,11 +237,16 @@ class HalloweenGameController {
         const resetBtn = document.getElementById('reset-game-btn');
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
-                const conf = confirm("⚠️ RESET ALL OCCULT PROGRESS?\n\nThis will re-lock all completed realms, wipe all claimed badges, and clear scores.\nAre you sure you want to start fresh?");
+                const conf = confirm("⚠️ RESET ALL OCCULT PROGRESS?\n\nThis will re-lock all completed realms, wipe all claimed badges, reset Trick or Treat spins to 3, and clear scores.\nAre you sure you want to start fresh?");
                 if (conf) {
                     this.state.unlockedLevels = [1];
                     this.state.completedLevels = [];
                     this.state.badges = [];
+                    this.state.wheelSpins = 3;
+                    this.state.occultXP = 0;
+                    this.state.spectralShields = 0;
+                    this.state.elixirsOfIntuition = 0;
+                    this.state.specialTitles = [];
                     this.state.finalAssessment.score = 0;
                     this.state.finalAssessment.userAnswers = {};
                     this.state.finalAssessment.markedForReview.clear();
@@ -239,6 +254,7 @@ class HalloweenGameController {
                     this.renderLevelsGrid();
                     this.renderBadgesVault();
                     this.updateCertificatePreview();
+                    if (window.spookyWheel) window.spookyWheel.updateWheelUI();
                     window.spookyAudio.playJumpScare();
                     alert("🔄 All realm progress has been reset. Level 1 awaits!");
                 }
@@ -275,6 +291,22 @@ class HalloweenGameController {
                 this.switchView(targetView);
             });
         });
+
+        // Spin Wheel Button
+        const spinBtn = document.getElementById('spin-wheel-btn');
+        if (spinBtn) {
+            spinBtn.addEventListener('click', () => {
+                if (window.spookyWheel) window.spookyWheel.spin();
+            });
+        }
+
+        // Lifeline Buttons (Single Level)
+        document.getElementById('use-shield-single')?.addEventListener('click', () => this.useSpectralShield('single'));
+        document.getElementById('use-elixir-single')?.addEventListener('click', () => this.useElixirOfIntuition('single'));
+
+        // Lifeline Buttons (Final Assessment)
+        document.getElementById('use-shield-final')?.addEventListener('click', () => this.useSpectralShield('final'));
+        document.getElementById('use-elixir-final')?.addEventListener('click', () => this.useElixirOfIntuition('final'));
 
         // Certificate Name Input Listener
         const certNameInput = document.getElementById('cert-student-name');
@@ -318,6 +350,15 @@ class HalloweenGameController {
         document.getElementById('view-quest-map').style.display = viewName === 'quest' ? 'block' : 'none';
         document.getElementById('view-badges-vault').style.display = viewName === 'badges' ? 'block' : 'none';
         document.getElementById('view-certificate').style.display = viewName === 'cert' ? 'block' : 'none';
+        
+        const wheelView = document.getElementById('view-wheel');
+        if (wheelView) {
+            wheelView.style.display = viewName === 'wheel' ? 'block' : 'none';
+            if (viewName === 'wheel' && window.spookyWheel) {
+                window.spookyWheel.init('spooky-wheel-canvas');
+                window.spookyWheel.updateWheelUI();
+            }
+        }
 
         if (viewName === 'cert') {
             this.updateCertificatePreview();
@@ -386,7 +427,6 @@ class HalloweenGameController {
             return;
         }
 
-        // Regular levels (1-4)
         let questions = [];
         if (levelId === 1) questions = window.GAME_DATA.level1;
         else if (levelId === 2) questions = window.GAME_DATA.level2;
@@ -406,7 +446,87 @@ class HalloweenGameController {
         document.getElementById('view-quest-map').style.display = 'none';
         document.getElementById('quiz-stage-single').style.display = 'block';
 
+        this.updateLifelinesDisplay('single');
         this.renderSingleQuestion();
+    }
+
+    updateLifelinesDisplay(mode) {
+        const shieldCount = this.state.spectralShields || 0;
+        const elixirCount = this.state.elixirsOfIntuition || 0;
+
+        const shieldBtn = document.getElementById(`use-shield-${mode}`);
+        const elixirBtn = document.getElementById(`use-elixir-${mode}`);
+
+        if (shieldBtn) {
+            shieldBtn.textContent = `🛡️ Use Shield (${shieldCount})`;
+            shieldBtn.disabled = shieldCount <= 0;
+        }
+        if (elixirBtn) {
+            elixirBtn.textContent = `🧪 Use Elixir 50:50 (${elixirCount})`;
+            elixirBtn.disabled = elixirCount <= 0;
+        }
+    }
+
+    useSpectralShield(mode) {
+        if (!this.state.spectralShields || this.state.spectralShields <= 0) {
+            alert("🔒 No Spectral Shields remaining! Spin the Trick or Treat Wheel to claim more!");
+            return;
+        }
+
+        this.state.spectralShields--;
+        this.saveState();
+        this.updateLifelinesDisplay(mode);
+        window.spookyAudio.playCorrect();
+
+        if (mode === 'single') {
+            const trial = this.state.currentLevelTrial;
+            trial.score++;
+            alert("🛡️ SPECTRAL SHIELD ACTIVATED!\nThe phantom barrier repels the trial and auto-solves this question with full credit!");
+            this.handleNextQuestion();
+        } else if (mode === 'final') {
+            const finalState = this.state.finalAssessment;
+            const q = finalState.questions[finalState.currentIndex];
+            finalState.userAnswers[finalState.currentIndex] = q.answer;
+            this.updatePaletteCell(finalState.currentIndex);
+            alert("🛡️ SPECTRAL SHIELD ACTIVATED!\nQuestion automatically answered correctly!");
+            this.navigateFinalQuestion(1);
+        }
+    }
+
+    useElixirOfIntuition(mode) {
+        if (!this.state.elixirsOfIntuition || this.state.elixirsOfIntuition <= 0) {
+            alert("🔒 No Elixirs of Intuition remaining! Spin the Trick or Treat Wheel to win elixirs!");
+            return;
+        }
+
+        this.state.elixirsOfIntuition--;
+        this.saveState();
+        this.updateLifelinesDisplay(mode);
+        window.spookyAudio.playCorrect();
+
+        const containerId = mode === 'single' ? 'quiz-options-container' : 'final-options-container';
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        let correctAnswer;
+        if (mode === 'single') {
+            correctAnswer = this.state.currentLevelTrial.questions[this.state.currentLevelTrial.currentIndex].answer;
+        } else {
+            correctAnswer = this.state.finalAssessment.questions[this.state.finalAssessment.currentIndex].answer;
+        }
+
+        const buttons = Array.from(container.querySelectorAll('.option-btn'));
+        let eliminated = 0;
+        buttons.forEach((btn, idx) => {
+            if (idx !== correctAnswer && eliminated < 2) {
+                btn.style.opacity = '0.2';
+                btn.style.pointerEvents = 'none';
+                btn.style.textDecoration = 'line-through';
+                eliminated++;
+            }
+        });
+
+        alert("🧪 ELIXIR OF INTUITION CONSUMED!\nTwo lethal falsehoods have dissolved into spectral mist!");
     }
 
     renderSingleQuestion() {
@@ -438,6 +558,7 @@ class HalloweenGameController {
 
         trial.selectedOption = null;
         trial.isAnswered = false;
+        this.updateLifelinesDisplay('single');
     }
 
     selectSingleOption(optIdx) {
@@ -506,9 +627,13 @@ class HalloweenGameController {
             if (nextLvl <= 5 && !this.state.unlockedLevels.includes(nextLvl)) {
                 this.state.unlockedLevels.push(nextLvl);
             }
+
+            // Award +2 spins on Trick or Treat Wheel and +150 XP!
+            this.state.wheelSpins = (this.state.wheelSpins || 0) + 2;
+            this.state.occultXP = (this.state.occultXP || 0) + 150;
             this.saveState();
 
-            alert(`🎉 SPOOKY TRIUMPH!\n\nYou conquered ${levelConfig.title} with a score of ${percentage}% (${trial.score}/${total})!\n\nYou earned Kapil's Badge: ${levelConfig.badge.name} ${levelConfig.badge.icon}!`);
+            alert(`🎉 SPOOKY TRIUMPH!\n\nYou conquered ${levelConfig.title} with a score of ${percentage}% (${trial.score}/${total})!\n\nYou earned Kapil's Badge: ${levelConfig.badge.name} ${levelConfig.badge.icon}!\n\n🎁 BONUS REWARD: +2 SPINS awarded for Kapil's Wheel of Trick or Treat, plus +150 Occult XP!`);
         } else {
             window.spookyAudio.playJumpScare();
             alert(`💀 THE SOULS CLAIMED YOU!\n\nYou scored ${percentage}%, but need ${levelConfig.passScore}% to pass this realm. Re-ignite your torches and try again!`);
@@ -523,6 +648,7 @@ class HalloweenGameController {
         this.renderLevelsGrid();
         this.renderBadgesVault();
         this.updateCertificatePreview();
+        if (window.spookyWheel) window.spookyWheel.updateWheelUI();
     }
 
     /* -------------------------------------------------------------
@@ -641,6 +767,7 @@ class HalloweenGameController {
         }
 
         this.updatePaletteCell(finalState.currentIndex);
+        this.updateLifelinesDisplay('final');
     }
 
     updatePaletteCell(index) {
@@ -707,9 +834,11 @@ class HalloweenGameController {
             if (!this.state.badges.includes(lvl5.badge.id)) {
                 this.state.badges.push(lvl5.badge.id);
             }
+            this.state.wheelSpins = (this.state.wheelSpins || 0) + 5;
+            this.state.occultXP = (this.state.occultXP || 0) + 500;
             this.saveState();
 
-            alert(`🏆 GLORIOUS ASCENSION!\n\nYou passed the 300-MCQ 1-Hour Halloween Trial with ${finalState.score}% (${correctCount}/300 correct)!\n\nYou have earned the Supreme Badge: ${lvl5.badge.name} ${lvl5.badge.icon} with Kapil's Medallion!\nYour Official Certificate is now ready for download!`);
+            alert(`🏆 GLORIOUS ASCENSION!\n\nYou passed the 300-MCQ 1-Hour Halloween Trial with ${finalState.score}% (${correctCount}/300 correct)!\n\nYou have earned the Supreme Badge: ${lvl5.badge.name} ${lvl5.badge.icon} with Kapil's Medallion!\n\n🎁 BONUS: +5 Spins on the Trick or Treat Wheel + 500 Occult XP! Your Official Certificate is now ready for download!`);
         } else {
             window.spookyAudio.playJumpScare();
             alert(`💀 THE TRIAL CONSUMED YOU!\n\nYou scored ${finalState.score}% (${correctCount}/300). Minimum required is ${lvl5.passScore}%. Refine your DSA, Aptitude, and Soft Skills, and challenge the Necromancer again!`);
@@ -761,6 +890,8 @@ class HalloweenGameController {
             name: this.state.studentName || "Apprentice",
             score: score,
             badges: this.state.badges,
+            specialTitles: this.state.specialTitles,
+            occultXP: this.state.occultXP,
             date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
         });
     }

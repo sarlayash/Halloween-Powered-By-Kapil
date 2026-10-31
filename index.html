@@ -29,8 +29,30 @@
                 </button>
             </div>
             <span style="font-size: 0.75rem; color: #94a3b8;">
-                Your name will be inscribed upon all 5 Badges and your Official Verified Certificate.
+                Your name will be inscribed upon all 5 Badges, the Trick or Treat Vault, and your Official Verified Certificate.
             </span>
+        </div>
+    </div>
+
+    <!-- TRICK OR TREAT RESULT MODAL -->
+    <div id="wheel-result-modal" class="wheel-modal-overlay" style="display: none;">
+        <div class="wheel-modal-card">
+            <div id="wheel-result-icon" class="wheel-modal-icon">🍬</div>
+            <h2 id="wheel-result-title">HALLOWEEN DESTINY</h2>
+            <p id="wheel-result-desc" class="wheel-modal-desc">
+                Fate spins in the dark catacombs...
+            </p>
+
+            <!-- Trick Challenge Box (Active if Trick is spun) -->
+            <div id="wheel-trick-challenge-box" class="wheel-trick-challenge" style="display: none;">
+                <h4>⚠️ OCCULT TEST OF INTELLECT</h4>
+                <div id="wheel-trick-prompt" class="wheel-trick-prompt"></div>
+                <div id="wheel-trick-options" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+
+            <button id="wheel-result-action-btn" class="spooky-btn-primary" style="width: 100%; padding: 14px;">
+                Accept Fate & Continue
+            </button>
         </div>
     </div>
 
@@ -55,7 +77,7 @@
                 <button id="switch-learner-btn" class="spooky-btn-pill" title="Change or log out current learner">
                     👤 Log Off / Switch
                 </button>
-                <button id="reset-game-btn" class="spooky-btn-pill danger" title="Reset all level progression & badges">
+                <button id="reset-game-btn" class="spooky-btn-pill danger" title="Reset all level progression, badges & wheel">
                     🔄 Reset Progress
                 </button>
             </div>
@@ -65,6 +87,9 @@
         <nav class="nav-tabs">
             <button class="nav-tab active" data-view="quest">
                 <span>🗺️</span> 5 Haunted Levels
+            </button>
+            <button class="nav-tab" data-view="wheel">
+                <span>🎡</span> Trick or Treat Wheel
             </button>
             <button class="nav-tab" data-view="badges">
                 <span>🏆</span> Badges Vault
@@ -87,7 +112,7 @@
                     <span class="founder-header-pill">Occult Proclamation</span>
                     <h3>A Grim Welcome From Kapil</h3>
                     <div class="founder-note-quote">
-                        "Mortal seeker, you stand at the precipice of the Netherworld. Many tremble before the cold crypts of complex Data Structures, freeze in terror at the labyrinthine twists of Aptitude, or crumble under toxic pressure. But true mastery is forged when logic meets emotional intelligence—the courage to stay calm, listen deeply, and lead through the storm. Complete the 5 trials, survive the 300-MCQ 1-Hour Witching Trial, and claim your immortal Certificate of Occult Mastery. I will be watching your every decision from the shadows..."
+                        "Mortal seeker, you stand at the precipice of the Netherworld. Many tremble before the cold crypts of complex Data Structures, freeze in terror at the labyrinthine twists of Aptitude, or crumble under toxic pressure. But true mastery is forged when logic meets emotional intelligence—the courage to stay calm, listen deeply, and lead through the storm. Spin the Trick or Treat Wheel to arm yourself with Spectral Shields and Elixirs, conquer the 5 trials, survive the 300-MCQ 1-Hour Witching Trial, and claim your immortal Certificate of Occult Mastery. I will be watching your every decision from the shadows..."
                     </div>
                     <div class="founder-sign-row">
                         <div>
@@ -129,11 +154,82 @@
             </div>
         </section>
 
+        <!-- VIEW: TRICK OR TREAT SPINNING WHEEL -->
+        <section id="view-wheel" style="display: none;">
+            <div class="wheel-section">
+                <span class="hero-tag">Sarlayash Gamification Arena</span>
+                <h2 style="font-family: var(--horror-font); font-size: 2.4rem; color: var(--pumpkin-orange); margin-bottom: 8px; letter-spacing: 2px;">
+                    🎡 KAPIL'S WHEEL OF TRICK OR TREAT
+                </h2>
+                <p style="color: #cbd5e1; max-width: 780px; margin: 0 auto 24px; line-height: 1.6;">
+                    Will fortune bestow sweet treats—such as <strong>Spectral Shields</strong>, <strong>50:50 Elixirs of Intuition</strong>, and <strong>Occult XP</strong>? Or will the wheel unleash a spine-chilling <strong>TRICK</strong> to test your mastery of DSA, Logic, and Soft Skills?
+                </p>
+
+                <!-- Inventory & Stats HUD -->
+                <div class="wheel-hud">
+                    <div class="wheel-stat-chip">
+                        <span class="wheel-chip-icon">🌀</span>
+                        <div>
+                            <span class="wheel-chip-val" id="wheel-spins-count">3</span>
+                            <span class="wheel-chip-lbl">Spins Left</span>
+                        </div>
+                    </div>
+                    <div class="wheel-stat-chip">
+                        <span class="wheel-chip-icon">🍬</span>
+                        <div>
+                            <span class="wheel-chip-val" id="wheel-xp-count">0</span>
+                            <span class="wheel-chip-lbl">Occult XP</span>
+                        </div>
+                    </div>
+                    <div class="wheel-stat-chip">
+                        <span class="wheel-chip-icon">🛡️</span>
+                        <div>
+                            <span class="wheel-chip-val" id="wheel-shields-count">0</span>
+                            <span class="wheel-chip-lbl">Spectral Shields</span>
+                        </div>
+                    </div>
+                    <div class="wheel-stat-chip">
+                        <span class="wheel-chip-icon">🧪</span>
+                        <div>
+                            <span class="wheel-chip-val" id="wheel-elixirs-count">0</span>
+                            <span class="wheel-chip-lbl">50:50 Elixirs</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spinning Wheel Canvas Area -->
+                <div class="wheel-canvas-wrapper">
+                    <canvas id="spooky-wheel-canvas" width="480" height="480"></canvas>
+                </div>
+
+                <div class="wheel-controls">
+                    <button id="spin-wheel-btn" class="spin-btn-huge">
+                        🎲 SPIN THE OCCULT WHEEL
+                    </button>
+                </div>
+
+                <p style="margin-top: 18px; font-size: 0.8rem; color: #94a3b8;">
+                    ★ Hint: Every time you clear any of the 5 realms, you earn <strong>+2 extra spins</strong>!
+                </p>
+            </div>
+        </section>
+
         <!-- QUIZ STAGE (Single Levels 1 - 4) -->
         <div id="quiz-stage-single" class="quiz-stage">
             <div class="quiz-top-bar">
                 <div id="quiz-level-title" class="quiz-progress-text">Level 1: Crypt of Algorithms</div>
                 <button id="exit-quiz-btn" class="spooky-btn-pill">✕ Retreat to Map</button>
+            </div>
+
+            <!-- Lifelines Bar: Powered by Wheel Rewards -->
+            <div class="lifelines-bar">
+                <span style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Wheel Lifelines:</span>
+                <button id="use-shield-single" class="lifeline-btn" title="Auto-solves question with full score">
+                    🛡️ Use Shield (0)
+                </button>
+                <button id="use-elixir-single" class="lifeline-btn" title="Eliminates 2 false options">
+                    🧪 Use Elixir 50:50 (0)
+                </button>
             </div>
 
             <div class="question-box">
@@ -172,6 +268,17 @@
                     <span>⏳ TIME:</span>
                     <span id="final-timer-display">60:00</span>
                 </div>
+            </div>
+
+            <!-- Lifelines Bar: Final Assessment -->
+            <div class="lifelines-bar">
+                <span style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px;">Wheel Lifelines:</span>
+                <button id="use-shield-final" class="lifeline-btn" title="Auto-solves current question">
+                    🛡️ Use Shield (0)
+                </button>
+                <button id="use-elixir-final" class="lifeline-btn" title="Eliminates 2 false options">
+                    🧪 Use Elixir 50:50 (0)
+                </button>
             </div>
 
             <div class="question-box">
@@ -253,7 +360,7 @@
                 <span style="color: var(--gold);">Halloween Powered By Kapil</span>
             </p>
             <p style="margin-top: 6px; font-size: 0.78rem;">
-                DSA • Aptitude • Soft Skills • Fun • Gamification • All Rights Reserved © 2026
+                DSA • Aptitude • Soft Skills • Fun • Gamification • Trick or Treat Wheel • All Rights Reserved © 2026
             </p>
         </footer>
 
@@ -262,6 +369,7 @@
     <!-- Scripts -->
     <script src="audio.js"></script>
     <script src="questions.js"></script>
+    <script src="wheel.js"></script>
     <script src="certificate.js"></script>
     <script src="game.js"></script>
 </body>

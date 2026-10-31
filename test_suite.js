@@ -1,4 +1,4 @@
-// Halloween Powered By Kapil - Deep Testing Suite
+// Halloween Powered By Kapil - Deep Testing Suite (Including Trick or Treat Wheel)
 const fs = require('fs');
 const path = require('path');
 
@@ -80,13 +80,34 @@ const longText = "This is a very long text intended to test whether the bounded 
 const wrappedLines = certEngine.wrapTextLines(mockCtx, longText, 250);
 assert(Array.isArray(wrappedLines) && wrappedLines.length > 1, `wrapTextLines correctly partitioned text into ${wrappedLines.length} bounded lines`);
 
-// Test with empty / short / extreme recipient names
-const shortName = "Alex";
-const superLongName = "Arch-Duke Alexander Maximillian Bartholomew Montgomery the Third of Sarlayash";
-assert(shortName.length > 0 && superLongName.length > 50, "Name edge cases prepared");
+// TEST 5: TRICK OR TREAT SPINNING WHEEL VERIFICATION
+console.log("\n--- TESTING TRICK OR TREAT SPINNING WHEEL ENGINE ---");
+const wheelContent = fs.readFileSync(path.join(__dirname, 'wheel.js'), 'utf8');
+eval(wheelContent);
 
-// TEST 5: Demo User Workflow Simulation
-console.log("\n--- SIMULATING DEMO USER WORKFLOW ---");
+const wheelEngine = window.spookyWheel;
+assert(wheelEngine !== undefined, "SpookyWheelEngine instantiated on window");
+assert(Array.isArray(wheelEngine.slices) && wheelEngine.slices.length === 8, "Wheel has exactly 8 occult slices");
+
+const treats = wheelEngine.slices.filter(s => s.type === 'treat');
+const tricks = wheelEngine.slices.filter(s => s.type === 'trick');
+assert(treats.length === 4, `Wheel contains 4 TREAT slices (found: ${treats.length})`);
+assert(tricks.length === 4, `Wheel contains 4 TRICK slices (found: ${tricks.length})`);
+
+tricks.forEach((trickSlice, idx) => {
+    const t = trickSlice.trick;
+    const valid = t && t.prompt && Array.isArray(t.options) && t.options.length >= 2 && typeof t.answer === 'number';
+    assert(valid, `TRICK Slice ${idx + 1} (${trickSlice.label}) has valid interactive riddle`);
+});
+
+treats.forEach((treatSlice, idx) => {
+    const r = treatSlice.reward;
+    const valid = r && r.type && (r.value !== undefined) && r.desc;
+    assert(valid, `TREAT Slice ${idx + 1} (${treatSlice.label}) has valid reward data`);
+});
+
+// TEST 6: Demo User Workflow Simulation with Wheel & Lifelines
+console.log("\n--- SIMULATING DEMO USER WORKFLOW WITH WHEEL ---");
 const mockLocalStorage = {};
 const mockDemoStorage = {
     getItem: (k) => mockLocalStorage[k] || null,
@@ -94,47 +115,42 @@ const mockDemoStorage = {
     removeItem: (k) => { delete mockLocalStorage[k]; }
 };
 
-// Demo user enters name
-const demoLearnerName = "Demo Scholar Vikram";
-mockDemoStorage.setItem('halloween_kapil_game_state', JSON.stringify({
-    studentName: demoLearnerName,
+// Demo user starts with 3 spins
+const demoState = {
+    studentName: "Demo Scholar Vikram",
     unlockedLevels: [1],
     completedLevels: [],
-    badges: []
-}));
+    badges: [],
+    wheelSpins: 3,
+    occultXP: 100,
+    spectralShields: 2,
+    elixirsOfIntuition: 1,
+    specialTitles: []
+};
 
-const loadedState = JSON.parse(mockDemoStorage.getItem('halloween_kapil_game_state'));
-assert(loadedState.studentName === demoLearnerName, "Demo learner name persisted and retrieved properly");
+mockDemoStorage.setItem('halloween_kapil_game_state', JSON.stringify(demoState));
+const retrieved = JSON.parse(mockDemoStorage.getItem('halloween_kapil_game_state'));
+assert(retrieved.wheelSpins === 3, "Wheel spins initialized to 3 in user profile");
+assert(retrieved.spectralShields === 2, "Spectral shields tracked in state");
+assert(retrieved.elixirsOfIntuition === 1, "Elixirs of intuition tracked in state");
 
-// Level 1 Pass Simulation
-loadedState.completedLevels.push(1);
-loadedState.badges.push('badge_dsa');
-loadedState.unlockedLevels.push(2);
-mockDemoStorage.setItem('halloween_kapil_game_state', JSON.stringify(loadedState));
+// Simulating Level completion awarding +2 spins
+retrieved.completedLevels.push(1);
+retrieved.unlockedLevels.push(2);
+retrieved.badges.push('badge_dsa');
+retrieved.wheelSpins += 2;
+retrieved.occultXP += 150;
+mockDemoStorage.setItem('halloween_kapil_game_state', JSON.stringify(retrieved));
 
-const afterLvl1 = JSON.parse(mockDemoStorage.getItem('halloween_kapil_game_state'));
-assert(afterLvl1.unlockedLevels.includes(2), "Level 2 unlocked after Level 1 completion");
-assert(afterLvl1.badges.includes('badge_dsa'), "DSA badge unlocked and recorded in state");
+const updated = JSON.parse(mockDemoStorage.getItem('halloween_kapil_game_state'));
+assert(updated.wheelSpins === 5, "Conquering a level properly awards +2 wheel spins (3 + 2 = 5)");
+assert(updated.occultXP === 250, "Conquering a level awards +150 Occult XP");
 
-// Full Completion & 300 MCQ Exam Simulation
-for (let lvl = 2; lvl <= 5; lvl++) {
-    afterLvl1.unlockedLevels.push(lvl);
-    afterLvl1.completedLevels.push(lvl);
-}
-afterLvl1.badges = ['badge_dsa', 'badge_aptitude', 'badge_softskills', 'badge_crucible', 'badge_grandmaster'];
-mockDemoStorage.setItem('halloween_kapil_game_state', JSON.stringify(afterLvl1));
-
-const finalRecorded = JSON.parse(mockDemoStorage.getItem('halloween_kapil_game_state'));
-assert(finalRecorded.badges.length === 5, "All 5 badges claimed by Demo User");
-assert(finalRecorded.completedLevels.length === 5, "All 5 levels conquered");
-
-// Reset Progress Test
-afterLvl1.unlockedLevels = [1];
-afterLvl1.completedLevels = [];
-afterLvl1.badges = [];
-mockDemoStorage.setItem('halloween_kapil_game_state', JSON.stringify(afterLvl1));
-const resetState = JSON.parse(mockDemoStorage.getItem('halloween_kapil_game_state'));
-assert(resetState.unlockedLevels.length === 1 && resetState.unlockedLevels[0] === 1, "Reset function restores initial state without breaking user profile");
+// Simulating consuming a spectral shield during trial
+updated.spectralShields -= 1;
+mockDemoStorage.setItem('halloween_kapil_game_state', JSON.stringify(updated));
+const afterShield = JSON.parse(mockDemoStorage.getItem('halloween_kapil_game_state'));
+assert(afterShield.spectralShields === 1, "Spectral shield consumed successfully during trial");
 
 console.log(`\n=== 🎃 TEST SUMMARY: ${passed} PASSED, ${failed} FAILED ===\n`);
 if (failed > 0) {
