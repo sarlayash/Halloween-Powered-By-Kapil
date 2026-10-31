@@ -1,7 +1,7 @@
 // Halloween Powered By Kapil - Certificate Engine
 // Sarlayash Productions
 // Robust HTML5 Canvas 2D Renderer with Zero Text Spillover / Overlap Guarantees
-// Integrated with Founder Kapil's Occult Portrait
+// Integrated with Founder Kapil's Occult Portrait & Wheel Perks
 
 class HalloweenCertificateEngine {
     constructor() {
@@ -15,7 +15,7 @@ class HalloweenCertificateEngine {
             this.founderImage.src = 'kapil_vampire.jpg';
             this.founderImage.onload = () => {
                 this.isImageLoaded = true;
-                if (window.gameApp && typeof window.gameApp.updateCertificatePreview === 'function') {
+                if (typeof window !== 'undefined' && window.gameApp && typeof window.gameApp.updateCertificatePreview === 'function') {
                     window.gameApp.updateCertificatePreview();
                 }
             };
@@ -105,21 +105,32 @@ class HalloweenCertificateEngine {
         ctx.fillStyle = '#cbd5e1';
         ctx.font = 'italic 22px "Cinzel", Georgia, serif';
         ctx.letterSpacing = '2px';
-        ctx.fillText("This sacred testament of intellect and grit is solemnly conferred upon", this.width / 2, 280);
+        ctx.fillText("This sacred testament of intellect and grit is solemnly conferred upon", this.width / 2, 275);
 
         // 9. RECIPIENT NAME (Auto-scaled to prevent ANY spillover / overlap)
         const recipientName = (data.name && data.name.trim()) ? data.name.trim() : "CHAMPION OF THE NIGHT";
-        this.drawAdaptiveName(ctx, recipientName, this.width / 2, 360, 1400);
+        this.drawAdaptiveName(ctx, recipientName, this.width / 2, 350, 1400);
+
+        // Special Title from Trick or Treat Wheel (if unlocked)
+        let narrativeStartY = 422;
+        if (data.specialTitles && data.specialTitles.length > 0) {
+            ctx.fillStyle = '#fde68a';
+            ctx.font = 'bold italic 18px "Cinzel", Georgia, serif';
+            ctx.letterSpacing = '2px';
+            ctx.fillText(`★ TITLE: ${data.specialTitles[0].toUpperCase()} ★`, this.width / 2, 388);
+            narrativeStartY = 432;
+        }
 
         // 10. Achievement Narrative (Bounded Wrapping, strictly non-overlapping)
         const scoreText = data.score !== undefined ? `${data.score}%` : "EXEMPLARY";
-        const narrative = `For intrepidly conquering the 5 Netherworld Realms of Data Structures & Algorithms, Quantitative Aptitude, Leadership & Soft Skills, and Alchemical Gamification, culminating in passing the 1-Hour 300-MCQ Final Assessment with a triumphant score of ${scoreText}. You have conquered the dark trial under the guidance of Kapil.`;
+        const xpText = data.occultXP ? ` and amassed ${data.occultXP} Occult XP` : '';
+        const narrative = `For intrepidly conquering the 5 Netherworld Realms of Data Structures & Algorithms, Quantitative Aptitude, Leadership & Soft Skills, and Alchemical Gamification, culminating in passing the 1-Hour 300-MCQ Final Assessment with a triumphant score of ${scoreText}${xpText}. You have conquered the dark trial under the guidance of Kapil.`;
 
         ctx.fillStyle = '#e2e8f0';
         ctx.font = '19px Georgia, serif';
         ctx.letterSpacing = '0.5px';
         const lines = this.wrapTextLines(ctx, narrative, 1300);
-        let currentY = 425;
+        let currentY = narrativeStartY;
         const lineHeight = 30;
         lines.forEach(line => {
             ctx.fillText(line, this.width / 2, currentY);
@@ -152,7 +163,7 @@ class HalloweenCertificateEngine {
      * Adapts font size so learner names never overflow or spill over bounds
      */
     drawAdaptiveName(ctx, name, x, y, maxAllowableWidth) {
-        let fontSize = 54;
+        let fontSize = 52;
         ctx.font = `bold ${fontSize}px "Cinzel Decorative", "Cinzel", Georgia, serif`;
         
         while (ctx.measureText(name).width > maxAllowableWidth && fontSize > 22) {

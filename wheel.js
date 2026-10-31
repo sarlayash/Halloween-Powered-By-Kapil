@@ -207,9 +207,14 @@ class SpookyWheelEngine {
             ctx.restore();
         }
 
-        // 4. Center Medallion (Kapil's Vampire Portrait Hub)
+        ctx.restore(); // Restore wheel rotation so center medallion stays upright!
+
+        // 4. Center Medallion (Kapil's Vampire Portrait Hub - stays upright)
+        ctx.save();
+        ctx.translate(centerX, centerY);
+
         ctx.beginPath();
-        ctx.arc(0, 0, 44, 0, 2 * Math.PI);
+        ctx.arc(0, 0, 46, 0, 2 * Math.PI);
         ctx.fillStyle = '#7f1d1d';
         ctx.fill();
         ctx.lineWidth = 4;
@@ -219,12 +224,12 @@ class SpookyWheelEngine {
         if (this.isImgLoaded && this.founderImg.complete && this.founderImg.naturalWidth > 0) {
             ctx.save();
             ctx.beginPath();
-            ctx.arc(0, 0, 40, 0, 2 * Math.PI);
+            ctx.arc(0, 0, 42, 0, 2 * Math.PI);
             ctx.clip();
-            ctx.drawImage(this.founderImg, -40, -50, 80, 100);
+            ctx.drawImage(this.founderImg, -42, -52, 84, 105);
             ctx.restore();
         } else {
-            ctx.font = '28px sans-serif';
+            ctx.font = '30px sans-serif';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
             ctx.fillText('🧛‍♂️', 0, 0);
@@ -232,8 +237,8 @@ class SpookyWheelEngine {
 
         // Inner gold hub ring
         ctx.beginPath();
-        ctx.arc(0, 0, 40, 0, 2 * Math.PI);
-        ctx.strokeStyle = 'rgba(245, 158, 11, 0.8)';
+        ctx.arc(0, 0, 42, 0, 2 * Math.PI);
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.85)';
         ctx.lineWidth = 2;
         ctx.stroke();
 
@@ -250,7 +255,7 @@ class SpookyWheelEngine {
 
         // Gothic flapper dagger
         ctx.beginPath();
-        ctx.moveTo(0, 24); // Sharp tip points down into the wheel
+        ctx.moveTo(0, 24);
         ctx.lineTo(-14, -12);
         ctx.lineTo(14, -12);
         ctx.closePath();
@@ -297,13 +302,11 @@ class SpookyWheelEngine {
         const winningIndex = Math.floor(Math.random() * this.slices.length);
         const sliceAngle = (2 * Math.PI) / this.slices.length;
 
-        // Pointer is at the top (angle -PI/2 or 3*PI/2)
-        // Angle formula to land exactly on winningIndex:
+        // Pointer is at the top (3*PI/2)
         const randomExtraSpins = (5 + Math.floor(Math.random() * 4)) * (2 * Math.PI);
         const sliceCenter = winningIndex * sliceAngle + sliceAngle / 2;
         const targetRotation = (3 * Math.PI / 2) - sliceCenter;
         
-        // Final destination angle
         const startRotation = this.currentAngle % (2 * Math.PI);
         let delta = targetRotation - startRotation;
         while (delta < 0) delta += 2 * Math.PI;
@@ -312,7 +315,7 @@ class SpookyWheelEngine {
 
         // Physics animation parameters
         const startTime = performance.now();
-        const duration = 4800; // 4.8 seconds of dramatic spin
+        const duration = 4800; // 4.8 seconds
         const initialAngle = this.currentAngle;
         let lastPegIndex = -1;
 
@@ -320,7 +323,7 @@ class SpookyWheelEngine {
             const elapsed = currentTime - startTime;
             const progress = Math.min(elapsed / duration, 1);
 
-            // Ease-out cubic: deceleration
+            // Ease-out cubic deceleration
             const easeOut = 1 - Math.pow(1 - progress, 3);
             this.currentAngle = initialAngle + (this.targetAngle - initialAngle) * easeOut;
 
@@ -328,7 +331,7 @@ class SpookyWheelEngine {
             const currentPeg = Math.floor((this.currentAngle / sliceAngle));
             if (currentPeg !== lastPegIndex) {
                 lastPegIndex = currentPeg;
-                const pitch = 1400 - (progress * 400); // pitch deepens as it slows
+                const pitch = 1400 - (progress * 400);
                 window.spookyAudio.playWheelClick(pitch);
             }
 
@@ -425,7 +428,7 @@ class SpookyWheelEngine {
                 if (isCorrect) {
                     window.spookyAudio.playCorrect();
                     const state = window.gameApp.state;
-                    state.occultXP = (state.occultXP || 0) + 300; // Bonus double XP for breaking the curse!
+                    state.occultXP = (state.occultXP || 0) + 300; // Bonus double XP!
                     window.gameApp.saveState();
                     this.updateWheelUI();
 
@@ -448,7 +451,6 @@ class SpookyWheelEngine {
         if (!window.gameApp || !window.gameApp.state) return;
         const state = window.gameApp.state;
 
-        // Ensure defaults
         if (state.wheelSpins === undefined) state.wheelSpins = 3;
         if (state.occultXP === undefined) state.occultXP = 0;
         if (state.spectralShields === undefined) state.spectralShields = 0;
@@ -474,4 +476,6 @@ class SpookyWheelEngine {
     }
 }
 
-window.spookyWheel = new SpookyWheelEngine();
+if (typeof window !== 'undefined') {
+    window.spookyWheel = new SpookyWheelEngine();
+}

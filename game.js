@@ -340,6 +340,7 @@ class HalloweenGameController {
         document.getElementById('final-next-btn')?.addEventListener('click', () => this.navigateFinalQuestion(1));
         document.getElementById('final-mark-btn')?.addEventListener('click', () => this.toggleFinalMarkForReview());
         document.getElementById('final-submit-btn')?.addEventListener('click', () => this.submitFinalAssessment());
+        document.getElementById('exit-final-btn')?.addEventListener('click', () => this.exitFinalAssessment());
     }
 
     switchView(viewName) {
